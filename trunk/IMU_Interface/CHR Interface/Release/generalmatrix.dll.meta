@@ -1,0 +1,149 @@
+Assembly GeneralMatrix, Version=1.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=SHA1, flags=None
+Class DotNetMatrix.QRDecomposition: AutoLayout, AnsiClass, Class, Public, Serializable, BeforeFieldInit
+    Void .ctor(DotNetMatrix.GeneralMatrix): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.Runtime.Serialization.ISerializable
+  Properties:
+    Boolean FullRank 'get ' : 
+    DotNetMatrix.GeneralMatrix H 'get ' : 
+    DotNetMatrix.GeneralMatrix R 'get ' : 
+    DotNetMatrix.GeneralMatrix Q 'get ' : 
+  Methods:
+    get_FullRank(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_H(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_R(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_Q(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    Solve(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+Class DotNetMatrix.LUDecomposition: AutoLayout, AnsiClass, Class, Public, Serializable, BeforeFieldInit
+    Void .ctor(DotNetMatrix.GeneralMatrix): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.Runtime.Serialization.ISerializable
+  Properties:
+    Boolean IsNonSingular 'get ' : 
+    DotNetMatrix.GeneralMatrix L 'get ' : 
+    DotNetMatrix.GeneralMatrix U 'get ' : 
+    Int32[] Pivot 'get ' : 
+    Double[] DoublePivot 'get ' : 
+  Methods:
+    get_IsNonSingular(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_L(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_U(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_Pivot(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_DoublePivot(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    Determinant(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Solve(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+Class DotNetMatrix.GeneralMatrix: AutoLayout, AnsiClass, Class, Public, Serializable, BeforeFieldInit
+    Void .ctor(Int32, Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(Int32, Int32, Double): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(Double[][]): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(Double[][], Int32, Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(Double[], Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.ICloneable
+    System.Runtime.Serialization.ISerializable
+    System.IDisposable
+  Properties:
+    Double[][] Array 'get ' : 
+    Double[][] ArrayCopy 'get ' : 
+    Double[] ColumnPackedCopy 'get ' : 
+    Double[] RowPackedCopy 'get ' : 
+    Int32 RowDimension 'get ' : 
+    Int32 ColumnDimension 'get ' : 
+  Methods:
+    get_Array(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_ArrayCopy(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_ColumnPackedCopy(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_RowPackedCopy(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_RowDimension(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_ColumnDimension(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    Create(Double[][]): PrivateScope, Public, Static, HideBySig
+    Copy(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetElement(Int32, Int32): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetMatrix(Int32, Int32, Int32, Int32): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetMatrix(Int32[], Int32[]): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetMatrix(Int32, Int32, Int32[]): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetMatrix(Int32[], Int32, Int32): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SetElement(Int32, Int32, Double): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SetMatrix(Int32, Int32, Int32, Int32, GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SetMatrix(Int32[], Int32[], GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SetMatrix(Int32[], Int32, Int32, GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SetMatrix(Int32, Int32, Int32[], GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Transpose(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Norm1(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Norm2(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    NormInf(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    NormF(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    UnaryMinus(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Add(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    AddEquals(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Subtract(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SubtractEquals(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    ArrayMultiply(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    ArrayMultiplyEquals(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    ArrayRightDivide(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    ArrayRightDivideEquals(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    ArrayLeftDivide(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    ArrayLeftDivideEquals(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Multiply(Double): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    MultiplyEquals(Double): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Multiply(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    op_Addition(GeneralMatrix, GeneralMatrix): PrivateScope, Public, Static, HideBySig, SpecialName
+    op_Subtraction(GeneralMatrix, GeneralMatrix): PrivateScope, Public, Static, HideBySig, SpecialName
+    op_Multiply(GeneralMatrix, GeneralMatrix): PrivateScope, Public, Static, HideBySig, SpecialName
+    LUD(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    QRD(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    chol(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SVD(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Eigen(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Solve(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SolveTranspose(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Inverse(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Determinant(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Rank(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Condition(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Trace(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Random(Int32, Int32): PrivateScope, Public, Static, HideBySig
+    Identity(Int32, Int32): PrivateScope, Public, Static, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig, VtableLayoutMask
+    Clone(): PrivateScope, Public, Final, Virtual, HideBySig, VtableLayoutMask
+Class DotNetMatrix.SingularValueDecomposition: AutoLayout, AnsiClass, Class, Public, Serializable, BeforeFieldInit
+    Void .ctor(DotNetMatrix.GeneralMatrix): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.Runtime.Serialization.ISerializable
+  Properties:
+    Double[] SingularValues 'get ' : 
+    DotNetMatrix.GeneralMatrix S 'get ' : 
+  Methods:
+    get_SingularValues(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_S(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    GetU(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetV(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Norm2(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Condition(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Rank(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+Class DotNetMatrix.CholeskyDecomposition: AutoLayout, AnsiClass, Class, Public, Serializable, BeforeFieldInit
+    Void .ctor(DotNetMatrix.GeneralMatrix): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.Runtime.Serialization.ISerializable
+  Properties:
+    Boolean SPD 'get ' : 
+  Methods:
+    get_SPD(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    GetL(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Solve(GeneralMatrix): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+Class DotNetMatrix.EigenvalueDecomposition: AutoLayout, AnsiClass, Class, Public, Serializable, BeforeFieldInit
+    Void .ctor(DotNetMatrix.GeneralMatrix): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.Runtime.Serialization.ISerializable
+  Properties:
+    Double[] RealEigenvalues 'get ' : 
+    Double[] ImagEigenvalues 'get ' : 
+    DotNetMatrix.GeneralMatrix D 'get ' : 
+  Methods:
+    get_RealEigenvalues(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_ImagEigenvalues(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_D(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    GetV(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
