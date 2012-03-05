@@ -14,28 +14,39 @@ int _tmain(int argc, _TCHAR* argv[])
 	NARCS* global;
 	try
 	{
+		printf("Main thread starting\n");
+
 		global = new NARCS;
 
 		global->allocate_threads();
 
 		global->start_threads();
 
-		printf("Main thread\n");
+		global->reincarnate(2000);
+
 		getchar();
-		return 0;
 	}
 	catch (int e)
 	{
-		printf("Exception\n");
+		char * exceptionStr;
 		switch (e){
 		case INVALID_THREAD_TYPE:
-			printf("Specified thread type is invalid\n");
+			exceptionStr = "Specified thread type is invalid\n";
+			break;
+
+		case FAILED_THREAD_CREATE:
+			exceptionStr = "Failed to create thread\n";
+			break;
+
+		case INVALID_PARAM_VALUE:
+			exceptionStr = "Invalid parameter value specified to a function\n";
 			break;
 
 		default:
-			printf("Unknown int Exception: %d\n",e);
+			exceptionStr = "Unknown int Exception: %d\n";
 			break;
 		}
+		printf("Exception: %s",exceptionStr);
 	}
 	catch (exception& e)
 	{
@@ -48,6 +59,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//Exit and cleanup Code
 	printf("Exiting program\n");
 	delete global;
+	getchar();
 	return 0;
 }
 

@@ -8,25 +8,38 @@ unsigned _stdcall thread_starting(void* param);
 class ThreadObj
 {
 public:
-	ThreadObj(void) :_running(false),_handle(NULL),_status(NULL) {}
+	ThreadObj(void) :_active(false),_stop(false),_handle(NULL){}
 	~ThreadObj(void)
 	{}
 
 	bool startThread(void);
 
-	void setType(Thread_type type){
+	HANDLE getHandle()
+	{
+		return this->_handle;
+	}
+
+	void stopThread(void)
+	{
+		_stop = true;
+	}
+
+	void setType(Thread_type type)
+	{
 		_type = type;
 	}
-	Thread_type getType(){
+
+	Thread_type getType()
+	{
 		return _type;
 	}
 
 	virtual int threadMain() = 0;
 	
-private:
+protected:
 	HANDLE _handle;
-	bool _running; //determines if thread should be running
-	bool _status;	//thread status: active, terminated, etc;
+	bool _active;	//thread status( running or not)
+	bool _stop;		//command thread to terminate
 	Thread_type _type;
 };
 

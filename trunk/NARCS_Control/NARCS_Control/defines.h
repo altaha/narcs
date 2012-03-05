@@ -2,6 +2,8 @@
 
 //Define exception error codes
 #define INVALID_THREAD_TYPE 1
+#define FAILED_THREAD_CREATE 2
+#define INVALID_PARAM_VALUE 3
 
 //Thread Defines
 #define NUM_THREADS	5 //plus primary thread
