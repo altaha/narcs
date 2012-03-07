@@ -17,6 +17,11 @@ IMU_Interface
 -Modified to supply orientation info to NARCS_Control through shared memory
 
 ======================================
+SharedMemory
+
+-Project demonstrating shared memory for C++ Win32 and managed C++
+-Used for experimentation
+======================================
 TODO:
 
 -Add folders for Arm, Arduino, Kinect, etc.

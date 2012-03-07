@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedMem_Producer", "SharedMem_Producer\SharedMem_Producer.vcxproj", "{D5DE6536-EFE0-4D59-A6E2-7218DAD0D227}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedMem_Consumer", "SharedMem_Consumer\SharedMem_Consumer.vcxproj", "{8DD91764-3EF3-4BEA-949D-2834403E58B4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedMem_CLR", "SharedMem_CLR\SharedMem_CLR.vcxproj", "{289679A1-9B02-4481-AD40-AF39A8F8AACF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5DE6536-EFE0-4D59-A6E2-7218DAD0D227}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D5DE6536-EFE0-4D59-A6E2-7218DAD0D227}.Debug|Win32.Build.0 = Debug|Win32
+		{D5DE6536-EFE0-4D59-A6E2-7218DAD0D227}.Release|Win32.ActiveCfg = Release|Win32
+		{D5DE6536-EFE0-4D59-A6E2-7218DAD0D227}.Release|Win32.Build.0 = Release|Win32
+		{8DD91764-3EF3-4BEA-949D-2834403E58B4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8DD91764-3EF3-4BEA-949D-2834403E58B4}.Debug|Win32.Build.0 = Debug|Win32
+		{8DD91764-3EF3-4BEA-949D-2834403E58B4}.Release|Win32.ActiveCfg = Release|Win32
+		{8DD91764-3EF3-4BEA-949D-2834403E58B4}.Release|Win32.Build.0 = Release|Win32
+		{289679A1-9B02-4481-AD40-AF39A8F8AACF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{289679A1-9B02-4481-AD40-AF39A8F8AACF}.Debug|Win32.Build.0 = Debug|Win32
+		{289679A1-9B02-4481-AD40-AF39A8F8AACF}.Release|Win32.ActiveCfg = Release|Win32
+		{289679A1-9B02-4481-AD40-AF39A8F8AACF}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
