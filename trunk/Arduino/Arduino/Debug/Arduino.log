@@ -1,0 +1,23 @@
+﻿Build started 07/03/2012 6:35:11 PM.
+     1>Project "C:\Users\Tope\Documents\MTE 482\Project\trunk\Arduino\Arduino\Arduino.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\Arduino.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       GenerateTargetFrameworkMonikerAttribute:
+       Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+       ClCompile:
+         All outputs are up-to-date.
+         All outputs are up-to-date.
+       Link:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Tope\Documents\MTE 482\Project\trunk\Arduino\Debug\Arduino.exe" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Arduino.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Tope\Documents\MTE 482\Project\trunk\Arduino\Debug\Arduino.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 Debug\ReadSensor.obj
+         "Debug\.NETFramework,Version=v4.0.AssemblyAttributes.obj"
+         Arduino.vcxproj -> C:\Users\Tope\Documents\MTE 482\Project\trunk\Arduino\Debug\Arduino.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\Tope\Documents\MTE 482\Project\trunk\Arduino\Debug\Arduino.exe;#1" /manifest Debug\Arduino.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file "Debug\Arduino.unsuccessfulbuild".
+         Touching "Debug\Arduino.lastbuildstate".
+     1>Done Building Project "C:\Users\Tope\Documents\MTE 482\Project\trunk\Arduino\Arduino\Arduino.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.78

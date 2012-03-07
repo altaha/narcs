@@ -22,6 +22,14 @@ SharedMemory
 -Project demonstrating shared memory for C++ Win32 and managed C++
 -Used for experimentation
 ======================================
+Kinect:
+
+======================================
+Arduino:
+This program will read values coming through the serial port
+
+======================================
+
 TODO:
 
--Add folders for Arm, Arduino, Kinect, etc.
+-Add folders for Arm, Kinect, etc.
