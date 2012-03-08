@@ -1,4 +1,4 @@
-﻿Build started 07/03/2012 7:21:52 PM.
+﻿Build started 07/03/2012 7:34:02 PM.
      1>Project "C:\Users\Tope\Documents\MTE 482\Project\trunk\Arduino\Arduino\Arduino.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\Arduino.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -23,4 +23,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.89
+Time Elapsed 00:00:04.02
