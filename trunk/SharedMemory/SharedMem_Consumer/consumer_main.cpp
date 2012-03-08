@@ -2,7 +2,17 @@
 #include <stdio.h>
 #include <Windows.h>
 
+#include "SharedMem.h"
+
 using namespace std;
+
+typedef struct joint_data{
+	double x;
+	double y;
+	double z;
+} joint_data;
+
+int STRUCT_SIZE = sizeof(joint_data);
 
 #define BUF_SIZE 256
 
@@ -10,44 +20,26 @@ int main(){
 	
 	printf("Opening Named Shared Memory\n");
 
-	HANDLE fileMapObj;
-	//TCHAR sharedMemName[]=TEXT("testSharedMemory");
-	TCHAR sharedMemName[]=TEXT("TestSharedMemCLI");
+	TCHAR sharedMemName[]=TEXT("testSharedMemory");
 
-	//Create file mapping object
-	fileMapObj = OpenFileMapping(
-                   FILE_MAP_ALL_ACCESS,   // read/write access
-                   FALSE,                 // do not inherit the name
-                   sharedMemName);        // name of mapping object
-	if (fileMapObj == NULL){
-		printf("Could not open file mapping object (%d)\n", GetLastError());
-		return 1;
+	SharedMem sharedMemory = SharedMem::SharedMem(sharedMemName, false);
+
+	if( !sharedMemory.Start(0) ){
+		printf("Failed to open memory\n");
 	}
 
-	//Create file view
-	void* pBuf; //pointer to shared memory
-	pBuf = MapViewOfFile(fileMapObj,   // handle to map object
-					FILE_MAP_ALL_ACCESS, // read/write permission
-					0,
-					0,
-					BUF_SIZE);
-	if (pBuf == NULL)
-	{
-		printf("Could not map view of file (%d).\n", GetLastError());
-		CloseHandle(fileMapObj);
-		return 1;
+	printf("Size of struct: %d\n", STRUCT_SIZE);
+	printf("Size of memory is: %d\n", sharedMemory.GetSize() );
+
+	joint_data read_test;
+	if( sharedMemory.Read( (void*)&read_test, STRUCT_SIZE, 5) ){
+		printf("I read x:%f, y:%f, z:%f\n", read_test.x, read_test.y, read_test.z);
 	}
-	/////Done opening named shared memory
 
-
-
-	//Read from shared memory
-	printf("I read %s\n",pBuf);
+	wprintf(sharedMemory.GetName());
 
 	//terminate
 	printf("Process 2 done\n");
 	getchar();
-	UnmapViewOfFile(pBuf);
-	CloseHandle(fileMapObj);
 	return 0;
 }
