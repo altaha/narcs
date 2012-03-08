@@ -21,6 +21,12 @@ IMU_Interface
 -Modified to supply orientation info to NARCS_Control through shared memory
 
 ======================================
+Kinect_GUI
+
+-The Kinect GUI as provided in the Kinect SDK
+-Will be mooching data from the program using shared memory
+
+======================================
 SharedMemory
 
 -Project demonstrating shared memory for C++ Win32 and managed C++
