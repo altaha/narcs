@@ -3,6 +3,10 @@ This is where the in-development FYDP code resides.
 Folders:
 
 ======================================
+Arduino:
+This program will read values coming through the serial port
+
+======================================
 NARCS_Control:
 
 -The main program running on the control site computer.
@@ -21,14 +25,14 @@ SharedMemory
 
 -Project demonstrating shared memory for C++ Win32 and managed C++
 -Used for experimentation
-======================================
-Kinect:
 
 ======================================
-Arduino:
-This program will read values coming through the serial port
+Test Code:
+
+-This folder contains all test code.
 
 ======================================
+
 
 TODO:
 
