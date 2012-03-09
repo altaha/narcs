@@ -51,8 +51,8 @@ int main() {
 
 	iResult = connect(ConnectSocket, (const struct sockaddr *)(&serverAddress), sizeof(serverAddress));
 	if (iResult == SOCKET_ERROR) {
-		closesocket(ConnectSocket);
 		printf("Unable to connect to server: %ld\n", WSAGetLastError());
+		closesocket(ConnectSocket);
 		WSACleanup();
 		cin.get();
 		return 1;
