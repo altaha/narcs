@@ -61,7 +61,7 @@ int main() {
 	printf("Successfull Connection!\n\n");
 
 
-	char *sendbuf = "this is a test";
+	char *sendbuf = "280 20 550";
 	char recvbuf[DEFAULT_BUFLEN];
 
 	// Send an initial buffer
