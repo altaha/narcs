@@ -20,6 +20,8 @@
 #include <sstream>
 
 
+#define START_POSITION_DETERMINATION_TIME_INTERVAL  2000
+
 using namespace std;
 // </adeel>
 
@@ -666,12 +668,18 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 			( SkeletonFrame.SkeletonData[m_skeletonBeingTracked].eTrackingState != NUI_SKELETON_TRACKED ) )
 		{
 			m_skeletonBeingTracked = -1;
+			m_firstSkeletonFoundTime = -1;
+			m_startPositionX = -1;
+			m_startPositionY = -1;
+			m_startPositionZ = -1;
+			m_sendPositionUpdates = false;
 
 			for( int i = 0 ; i < NUI_SKELETON_COUNT ; i++ )
 			{
 				if( SkeletonFrame.SkeletonData[i].eTrackingState == NUI_SKELETON_TRACKED )
 				{
 					m_skeletonBeingTracked = i;
+					m_firstSkeletonFoundTime = timeGetTime();
 					break;
 				}
 			}
@@ -687,33 +695,49 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
         return;
     }
 
-    // smooth out the skeleton data
+	// smooth out the skeleton data
     m_pNuiInstance->NuiTransformSmooth(&SkeletonFrame,NULL);
 
 
-	stringstream xCoordNumToStringConverter,
-				 yCoordNumToStringConverter,
-				 zCoordNumToStringConverter;
-	string xCoordString,
-		   yCoordString,
-		   zCoordString,
-		   positionUpdateMessage;
+	if( ( !m_sendPositionUpdates ) &&
+		( ( timeGetTime() - m_firstSkeletonFoundTime ) > START_POSITION_DETERMINATION_TIME_INTERVAL ) )
+	{
+		m_sendPositionUpdates = true;
+		m_startPositionX = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x;
+		m_startPositionY = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y;
+		m_startPositionZ = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z;
+	}
 
-	xCoordNumToStringConverter << 
-		SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x;
-	xCoordNumToStringConverter >> xCoordString;
+	if( m_sendPositionUpdates )
+	{
+		double xCoordNum = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x -
+																															m_startPositionX) * 1000;
+		double yCoordNum = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y -
+																															m_startPositionY) * 1000;
+		double zCoordNum = (m_startPositionZ -
+								SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z) * 1000;
+		stringstream xCoordNumToStringConverter,
+					 yCoordNumToStringConverter,
+					 zCoordNumToStringConverter;
+		string xCoordString,
+			   yCoordString,
+			   zCoordString,
+			   positionUpdateMessage;
+
+
+		xCoordNumToStringConverter << xCoordNum;
+		xCoordNumToStringConverter >> xCoordString;
 	
-	yCoordNumToStringConverter << 
-		SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y;
-	yCoordNumToStringConverter >> yCoordString;
+		yCoordNumToStringConverter << yCoordNum;
+		yCoordNumToStringConverter >> yCoordString;
 	
-	zCoordNumToStringConverter << 
-		SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z;
-	zCoordNumToStringConverter >> zCoordString;
+		zCoordNumToStringConverter << zCoordNum;
+		zCoordNumToStringConverter >> zCoordString;
 
-	positionUpdateMessage = ", " + xCoordString + ", " + yCoordString + ", " + zCoordString;
-	socketConnectivity.SendMessage(positionUpdateMessage);
-
+		positionUpdateMessage = ", " + xCoordString + ", " + yCoordString + ", " + zCoordString;
+		m_socketConnectivity.SendMessage(positionUpdateMessage);
+	}
+	
 
     // we found a skeleton, re-start the timer
     m_bScreenBlanked = false;

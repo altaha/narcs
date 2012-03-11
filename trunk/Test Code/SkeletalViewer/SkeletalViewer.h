@@ -53,8 +53,13 @@ private:
     void UpdateComboBox();
 
 	// <adeel>
-	SocketConnectivity      socketConnectivity;
-    int                     m_skeletonBeingTracked;
+	SocketConnectivity         m_socketConnectivity;
+    int                        m_skeletonBeingTracked;
+    int                        m_firstSkeletonFoundTime;
+	float                      m_startPositionX;
+	float                      m_startPositionY;
+	float                      m_startPositionZ;
+	bool                       m_sendPositionUpdates;
     // </adeel>
 	CRITICAL_SECTION        m_critSecUi; // Gate UI operations on the background thread.
     static DWORD WINAPI     Nui_ProcessThread(LPVOID pParam);

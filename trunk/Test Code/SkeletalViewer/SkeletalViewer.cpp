@@ -82,6 +82,11 @@ CSkeletalViewerApp::CSkeletalViewerApp()
     m_fUpdatingUi = false;
 	// <adeel>
 	m_skeletonBeingTracked = -1;
+    m_firstSkeletonFoundTime = -1;
+	m_startPositionX = -1;
+	m_startPositionY = -1;
+	m_startPositionZ = -1;
+	m_sendPositionUpdates = false;
 	// </adeel>
 	Nui_Zero();
 }
@@ -164,7 +169,7 @@ LRESULT CALLBACK CSkeletalViewerApp::WndProc(HWND hWnd, UINT message, WPARAM wPa
             // Bind application window handle
             m_hWnd=hWnd;
 			// <adeel>
-			socketConnectivity.Initialize(hWnd);
+			m_socketConnectivity.Initialize(hWnd);
 			// <adeel>
 
             // Initialize and start NUI processing
