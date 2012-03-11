@@ -22,100 +22,46 @@
 #include <strsafe.h>
 #include "SkeletalViewer.h"
 #include "resource.h"
-// <adeel>
-#include <winsock2.h>
-#include <ws2tcpip.h>
 
-
-#pragma comment(lib, "Ws2_32.lib")
-
-
-#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1  192
-#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2  168
-#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3  1
-#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4  1
-#define ARM_TRACKING_SOCKET_PORT  62009
-#define DEFAULT_BUFLEN 512
-// </adeel>
 
 // Global Variables:
 CSkeletalViewerApp	g_CSkeletalViewerApp;	                 // Application class
 HINSTANCE			g_hInst;				                 // current instance
 HWND				g_hWndApp;				                 // Windows Handle to main application
 TCHAR				g_szAppTitle[256];		                 // Application title
-// <adeel>
-SOCKET              g_armTrackingSocket = INVALID_SOCKET;    // Socket used to track the operator's
-															 // arm
-// </adeel>
 
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow)
 {
 	// <adeel>
-	WSADATA wsaData;
-	int iResult;
-
-	// Initialize Winsock
-	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-	if (iResult != 0) {
-		return -1;
-	}
-
-
-	g_armTrackingSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (g_armTrackingSocket == INVALID_SOCKET)
-	{
-		WSACleanup();
-		return -1;
-	}
-
-
-	struct sockaddr_in remoteSideComputerAddress;
-	
-	ZeroMemory(&remoteSideComputerAddress, sizeof(remoteSideComputerAddress));
-	remoteSideComputerAddress.sin_family = AF_INET;
-	remoteSideComputerAddress.sin_port = htons(ARM_TRACKING_SOCKET_PORT);
-	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b1 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1);
-	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b2 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2);
-	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b3 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3);
-	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b4 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4);
-
-	iResult = connect(g_armTrackingSocket, (const struct sockaddr *)(&remoteSideComputerAddress), sizeof(remoteSideComputerAddress));
-	if (iResult == SOCKET_ERROR) {
-		closesocket(g_armTrackingSocket);
-		WSACleanup();
-		return -1;
-	}
-
-
 	/*
 	char *sendbuf = "this is a test";
 	char recvbuf[DEFAULT_BUFLEN];
 
 	// Send an initial buffer
-	iResult = send(g_armTrackingSocket, sendbuf, (int) strlen(sendbuf), 0);
+	iResult = send(m_armTrackingSocket, sendbuf, (int) strlen(sendbuf), 0);
 	if (iResult == SOCKET_ERROR) {
-		closesocket(g_armTrackingSocket);
+		closesocket(m_armTrackingSocket);
 		WSACleanup();
 		return -1;
 	}
 
 	// shutdown the connection for sending since no more data will be sent
-	// the client can still use the g_armTrackingSocket for receiving data
-	iResult = shutdown(g_armTrackingSocket, SD_SEND);
+	// the client can still use the m_armTrackingSocket for receiving data
+	iResult = shutdown(m_armTrackingSocket, SD_SEND);
 	if (iResult == SOCKET_ERROR) {
-		closesocket(g_armTrackingSocket);
+		closesocket(m_armTrackingSocket);
 		WSACleanup();
 		return -1;
 	}
 
 	// Receive data until the remote side computer closes the connection
-	iResult = recv(g_armTrackingSocket, recvbuf, DEFAULT_BUFLEN, 0);
+	iResult = recv(m_armTrackingSocket, recvbuf, DEFAULT_BUFLEN, 0);
 	if (iResult > 0) {
         recvbuf[iResult] = NULL;
 	}
 
-	closesocket(g_armTrackingSocket);
+	closesocket(m_armTrackingSocket);
 	WSACleanup();
 	*/
 	// </adeel>
@@ -169,7 +115,9 @@ CSkeletalViewerApp::CSkeletalViewerApp()
 {
     ::InitializeCriticalSection(&m_critSecUi);
     m_fUpdatingUi = false;
+	// <adeel>
 	m_skeletonBeingTracked = -1;
+	// </adeel>
 	Nui_Zero();
 }
 
@@ -250,6 +198,9 @@ LRESULT CALLBACK CSkeletalViewerApp::WndProc(HWND hWnd, UINT message, WPARAM wPa
 
             // Bind application window handle
             m_hWnd=hWnd;
+			// <adeel>
+			socketConnectivity.initialize(hWnd);
+			// <adeel>
 
             // Initialize and start NUI processing
             Nui_Init();

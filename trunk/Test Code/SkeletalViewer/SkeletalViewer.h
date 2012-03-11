@@ -15,6 +15,7 @@
 #include "resource.h"
 #include "MSR_NuiApi.h"
 #include "DrawDevice.h"
+#include "SocketConnectivity.h"
 
 #define SZ_APPDLG_WINDOW_CLASS          _T("SkeletalViewerAppDlgWndClass")
 #define WM_USER_UPDATE_FPS              WM_USER
@@ -52,8 +53,9 @@ private:
     void UpdateComboBox();
 
 	// <adeel>
+	SocketConnectivity      socketConnectivity;
     int                     m_skeletonBeingTracked;
-	// </adeel>
+    // </adeel>
 	CRITICAL_SECTION        m_critSecUi; // Gate UI operations on the background thread.
     static DWORD WINAPI     Nui_ProcessThread(LPVOID pParam);
     DWORD WINAPI            Nui_ProcessThread();
@@ -90,5 +92,8 @@ private:
 
 int MessageBoxResource(HWND hwnd,UINT nID,UINT nType);
 
+// <adeel>
+extern TCHAR g_szAppTitle[256];
+// </adeel>
 
 
