@@ -15,10 +15,9 @@
 using namespace ACTIVEROBOTLib;
 using namespace std;
 
-int main() {
 
-	char recvbuf[DEFAULT_BUFLEN];
-	int iResult, iSendResult;
+int main() {
+    int iResult, iSendResult;
 
 	WSADATA wsaData;	//to inialize Windows socket dll
 	struct addrinfo *result=NULL, *ptr=NULL, hints;
@@ -89,9 +88,116 @@ int main() {
 
 	printf("Accept succeeded\n\n");
 
-	
+
+
+	bool error = false;
+	char one_char_str_buffer[2];
+	int curr_bytes_read = -1;
+	unsigned int total_bytes_read = 0;
+	unsigned long int message_length = 0;
+	char *curr_string_ptr = NULL;
+
+	one_char_str_buffer[1] = NULL;
+	while(true)
+	{
+		// Read message length
+		error = false;
+		curr_bytes_read = -1;
+		total_bytes_read = 0;
+		string message_length_str;
+		message_length = 0;
+		do
+		{
+			curr_bytes_read = recv(ClientSocket, one_char_str_buffer, 1, 0);
+			if(curr_bytes_read <= 0)
+			{
+				error = true;
+				break;
+			}
+
+			total_bytes_read += curr_bytes_read;
+
+			if(one_char_str_buffer[0] == ',')
+				break;
+
+			message_length_str += one_char_str_buffer;
+		} while(1);
+
+		if(error)
+		{
+			if (curr_bytes_read == 0)
+			{
+				printf("Connection closing...\n");
+				closesocket(ClientSocket);
+				WSACleanup();
+				cin.get();
+				return 0;
+			}
+			else
+			{
+				printf("recv failed: %d\n", WSAGetLastError());
+				closesocket(ClientSocket);
+				WSACleanup();
+				cin.get();
+				return -1;
+			}
+		}
+
+		stringstream num_string_converter;
+
+		num_string_converter << message_length_str;
+		num_string_converter >> message_length;
+
+		// Read main message contents
+		char *message_buffer = new char[message_length -
+										message_length_str.length()];
+		curr_string_ptr = message_buffer;
+		while(total_bytes_read < message_length)
+		{
+			curr_bytes_read = recv(ClientSocket,
+								   curr_string_ptr,
+								   message_length - total_bytes_read,
+								   0);
+			if(curr_bytes_read <= 0)
+			{
+				error = true;
+				break;
+			}
+
+			total_bytes_read += curr_bytes_read;
+			curr_string_ptr += curr_bytes_read;
+		}
+
+		if(error)
+		{
+			delete[] message_buffer;
+			if (curr_bytes_read == 0)
+			{
+				printf("Connection closing...\n");
+				closesocket(ClientSocket);
+				WSACleanup();
+				cin.get();
+				return 0;
+			}
+			else
+			{
+				printf("recv failed: %d\n", WSAGetLastError());
+				closesocket(ClientSocket);
+				WSACleanup();
+				cin.get();
+				return -1;
+			}
+		}
+
+		*curr_string_ptr = NULL;
+		cout << message_length_str << ", " << message_buffer << endl;
+		delete[] message_buffer;
+	}
+
+	/*
 	// Receive until the peer shuts down the connection
 	do {
+		char recvbuf[DEFAULT_BUFLEN];
 		iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFLEN, 0);
 		if (iResult > 0) {
 			printf("Bytes received: %d\n", iResult);
@@ -118,12 +224,13 @@ int main() {
 		}
 
 	} while (iResult > 0);
-
+	
 	closesocket(ClientSocket);
 	WSACleanup();
+	cin.get();
+	*/
 
-
-
+	/*
 	if FAILED(CoInitialize(NULL))
 	{
 		AfxMessageBox("CoInitialize() failed.");
@@ -191,82 +298,7 @@ int main() {
 		//Robot->GripperFinish();
 		
 		Robot->GripperStop();
-		*/
-	}
-	catch (_com_error MyError)
-	{
-		char WorkString[255];
-		sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
-		AfxMessageBox(WorkString);
-		Robot->ControlRelease();
-		exit(1);
-	}
-
-	Robot->ControlRelease();
-	
-
-	return 0;
-}
-
-
-
-
-
-/*
-#include <afxwin.h>
-#include <iostream>
-
-#import "C:\Program Files\CRS Robotics\ActiveRobot\ActiveRobot.dll"
-using namespace ACTIVEROBOTLib;
-using namespace std;
-
-int main()
-{
-	if FAILED(CoInitialize(NULL))
-	{
-		AfxMessageBox("CoInitialize() failed.");
-		exit(1);
-	}
-
-	ICRSRobotPtr Robot =
-					ICRSRobotPtr(__uuidof(CRSRobot));
-	ICRSLocationPtr locA = 
-					ICRSLocationPtr(__uuidof(CRSLocation));
-
-	try
-	{
-		Robot->ControlGet();
-		ICRSLocationPtr tempLoc = Robot->GetWorldLocation(
-					ACTIVEROBOTLib::ptPositionType::ptActual);
-		cout << "tempLoc->Getx() = " << tempLoc->Getx() << endl
-			 << "tempLoc->Gety() = " << tempLoc->Gety() << endl
-			 << "tempLoc->Getz() = " << tempLoc->Getz() << endl
-			 << "tempLoc->Getxrot() = " << tempLoc->Getxrot()  << endl
-			 << "tempLoc->Getyrot() = " << tempLoc->Getyrot() << endl
-			 << "tempLoc->Getzrot() = " << tempLoc->Getzrot() << endl;
-
-		tempLoc->Getx();
-
-
-		locA->Putx(280); // 304.778
-		locA->Puty(20);	// -0.0265
-		locA->Putz(550);  // 507.998
-		locA->Putxrot(0);
-		locA->Putyrot(0);
-		locA->Putzrot(0);
-		locA->PutFlags(tempLoc->GetFlags());
-		locA->PutClass(
-				ACTIVEROBOTLib::locClass::locCartesian);
-		Robot->Move(locA);
-
-		Robot->GripperOpen(50);
-		Robot->GripperFinish();
-		Robot->GripperClose(30);
-		Robot->GripperFinish();
-		//Robot->GripperDistance = 50;
-		//Robot->GripperFinish();
 		
-		Robot->GripperStop();
 	}
 	catch (_com_error MyError)
 	{
@@ -278,6 +310,7 @@ int main()
 	}
 
 	Robot->ControlRelease();
+	*/
+
 	return 0;
 }
-*/
