@@ -30,11 +30,11 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 
-#define SERVER_IP_ADDRESS_BYTE_1  192
-#define SERVER_IP_ADDRESS_BYTE_2  168
-#define SERVER_IP_ADDRESS_BYTE_3  1
-#define SERVER_IP_ADDRESS_BYTE_4  1
-#define SERVER_PORT  62009
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1  192
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2  168
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3  1
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4  1
+#define ARM_TRACKING_SOCKET_PORT  62009
 #define DEFAULT_BUFLEN 512
 // </adeel>
 
@@ -70,17 +70,17 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdL
 	}
 
 
-	struct sockaddr_in serverAddress;
+	struct sockaddr_in remoteSideComputerAddress;
 	
-	ZeroMemory(&serverAddress, sizeof(serverAddress));
-	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(SERVER_PORT);
-	serverAddress.sin_addr.S_un.S_un_b.s_b1 = (unsigned char)(SERVER_IP_ADDRESS_BYTE_1);
-	serverAddress.sin_addr.S_un.S_un_b.s_b2 = (unsigned char)(SERVER_IP_ADDRESS_BYTE_2);
-	serverAddress.sin_addr.S_un.S_un_b.s_b3 = (unsigned char)(SERVER_IP_ADDRESS_BYTE_3);
-	serverAddress.sin_addr.S_un.S_un_b.s_b4 = (unsigned char)(SERVER_IP_ADDRESS_BYTE_4);
+	ZeroMemory(&remoteSideComputerAddress, sizeof(remoteSideComputerAddress));
+	remoteSideComputerAddress.sin_family = AF_INET;
+	remoteSideComputerAddress.sin_port = htons(ARM_TRACKING_SOCKET_PORT);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b1 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b2 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b3 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b4 = (unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4);
 
-	iResult = connect(g_armTrackingSocket, (const struct sockaddr *)(&serverAddress), sizeof(serverAddress));
+	iResult = connect(g_armTrackingSocket, (const struct sockaddr *)(&remoteSideComputerAddress), sizeof(remoteSideComputerAddress));
 	if (iResult == SOCKET_ERROR) {
 		closesocket(g_armTrackingSocket);
 		WSACleanup();
@@ -109,7 +109,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdL
 		return -1;
 	}
 
-	// Receive data until the server closes the connection
+	// Receive data until the remote side computer closes the connection
 	iResult = recv(g_armTrackingSocket, recvbuf, DEFAULT_BUFLEN, 0);
 	if (iResult > 0) {
         recvbuf[iResult] = NULL;
