@@ -3,6 +3,9 @@
 #include "SocketConnectivity.h"
 #include "SkeletalViewer.h"
 #include <sstream>
+// <debug>
+#include <fstream>
+// </debug>
 
 
 #define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1  192
@@ -14,6 +17,9 @@
 
 using namespace std;
 
+//<debug>
+fstream debugOut("debug.txt", ios::out);;
+//</debug>
 
 SocketConnectivity::SocketConnectivity() : m_armTrackingSocket( INVALID_SOCKET ),
 										   m_hWnd( NULL )
@@ -27,6 +33,10 @@ SocketConnectivity::~SocketConnectivity()
 		closesocket(m_armTrackingSocket);
 	}
 	WSACleanup();
+
+	// <debug>
+	debugOut.close();
+	// </debug>
 }
 
 void SocketConnectivity::Initialize(HWND hWnd)
@@ -124,6 +134,10 @@ void SocketConnectivity::SendMessage(string messageString)
 		currStringPtr += currBytesWritten;
 	}
 
+	// <debug>
+	debugOut << messageBuffer << endl;
+	debugOut.flush();
+	// </debug>
 	delete[] messageBuffer;
 	if(currBytesWritten == SOCKET_ERROR)
 	{

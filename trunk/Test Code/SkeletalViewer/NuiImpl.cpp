@@ -16,6 +16,12 @@
 #include "resource.h"
 #include <mmsystem.h>
 #include <assert.h>
+// <adeel>
+#include <sstream>
+
+
+using namespace std;
+// </adeel>
 
 static const COLORREF g_JointColorTable[NUI_SKELETON_POSITION_COUNT] = 
 {
@@ -683,6 +689,31 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 
     // smooth out the skeleton data
     m_pNuiInstance->NuiTransformSmooth(&SkeletonFrame,NULL);
+
+
+	stringstream xCoordNumToStringConverter,
+				 yCoordNumToStringConverter,
+				 zCoordNumToStringConverter;
+	string xCoordString,
+		   yCoordString,
+		   zCoordString,
+		   positionUpdateMessage;
+
+	xCoordNumToStringConverter << 
+		SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x;
+	xCoordNumToStringConverter >> xCoordString;
+	
+	yCoordNumToStringConverter << 
+		SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y;
+	yCoordNumToStringConverter >> yCoordString;
+	
+	zCoordNumToStringConverter << 
+		SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z;
+	zCoordNumToStringConverter >> zCoordString;
+
+	positionUpdateMessage = ", " + xCoordString + ", " + yCoordString + ", " + zCoordString;
+	socketConnectivity.SendMessage(positionUpdateMessage);
+
 
     // we found a skeleton, re-start the timer
     m_bScreenBlanked = false;
