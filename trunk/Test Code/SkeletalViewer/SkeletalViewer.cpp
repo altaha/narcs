@@ -33,42 +33,7 @@ TCHAR				g_szAppTitle[256];		                 // Application title
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow)
 {
-	// <adeel>
-	/*
-	char *sendbuf = "this is a test";
-	char recvbuf[DEFAULT_BUFLEN];
-
-	// Send an initial buffer
-	iResult = send(m_armTrackingSocket, sendbuf, (int) strlen(sendbuf), 0);
-	if (iResult == SOCKET_ERROR) {
-		closesocket(m_armTrackingSocket);
-		WSACleanup();
-		return -1;
-	}
-
-	// shutdown the connection for sending since no more data will be sent
-	// the client can still use the m_armTrackingSocket for receiving data
-	iResult = shutdown(m_armTrackingSocket, SD_SEND);
-	if (iResult == SOCKET_ERROR) {
-		closesocket(m_armTrackingSocket);
-		WSACleanup();
-		return -1;
-	}
-
-	// Receive data until the remote side computer closes the connection
-	iResult = recv(m_armTrackingSocket, recvbuf, DEFAULT_BUFLEN, 0);
-	if (iResult > 0) {
-        recvbuf[iResult] = NULL;
-	}
-
-	closesocket(m_armTrackingSocket);
-	WSACleanup();
-	*/
-	// </adeel>
-
-
-
-    MSG			msg;
+	MSG			msg;
     WNDCLASS	wc;
 
     // Store the instance handle
@@ -199,7 +164,7 @@ LRESULT CALLBACK CSkeletalViewerApp::WndProc(HWND hWnd, UINT message, WPARAM wPa
             // Bind application window handle
             m_hWnd=hWnd;
 			// <adeel>
-			socketConnectivity.initialize(hWnd);
+			socketConnectivity.Initialize(hWnd);
 			// <adeel>
 
             // Initialize and start NUI processing

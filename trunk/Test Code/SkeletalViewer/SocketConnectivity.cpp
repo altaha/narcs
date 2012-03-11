@@ -2,6 +2,14 @@
 #include "stdafx.h"
 #include "SocketConnectivity.h"
 #include "SkeletalViewer.h"
+#include <sstream>
+
+
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1  192
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2  168
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3  1
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4  1
+#define ARM_TRACKING_SOCKET_PORT  62009
 
 
 using namespace std;
@@ -21,8 +29,7 @@ SocketConnectivity::~SocketConnectivity()
 	WSACleanup();
 }
 
-
-void SocketConnectivity::initialize(HWND hWnd)
+void SocketConnectivity::Initialize(HWND hWnd)
 {
 	m_hWnd = hWnd;
 
@@ -33,7 +40,7 @@ void SocketConnectivity::initialize(HWND hWnd)
 	errCode = WSAStartup(MAKEWORD(2,2), &wsaData);
 	if (errCode != 0) {
 		MessageBox(m_hWnd,
-				   TEXT("SocketConnectivity::initialize(...):- WSAStartup(...) failed"),
+				   TEXT("SocketConnectivity::Initialize(...):- WSAStartup(...) failed"),
 				   g_szAppTitle,
 				   MB_OK | MB_ICONHAND);
 		DestroyWindow(m_hWnd);
@@ -45,7 +52,7 @@ void SocketConnectivity::initialize(HWND hWnd)
 	if (m_armTrackingSocket == INVALID_SOCKET)
 	{
 		MessageBox(m_hWnd,
-				   TEXT("SocketConnectivity::initialize(...):- socket(...) failed"),
+				   TEXT("SocketConnectivity::Initialize(...):- socket(...) failed"),
 				   g_szAppTitle,
 				   MB_OK | MB_ICONHAND);
 		DestroyWindow(m_hWnd);
@@ -66,7 +73,7 @@ void SocketConnectivity::initialize(HWND hWnd)
 	errCode = connect(m_armTrackingSocket, (const struct sockaddr *)(&remoteSideComputerAddress), sizeof(remoteSideComputerAddress));
 	if (errCode == SOCKET_ERROR) {
 		MessageBox(m_hWnd,
-				   TEXT("SocketConnectivity::initialize(...):- connect(...) failed"),
+				   TEXT("SocketConnectivity::Initialize(...):- connect(...) failed"),
 				   g_szAppTitle,
 				   MB_OK | MB_ICONHAND);
 		DestroyWindow(m_hWnd);
@@ -74,70 +81,59 @@ void SocketConnectivity::initialize(HWND hWnd)
 	}
 }
 
-/*
-bool send_message(string message_string)
+void SocketConnectivity::SendMessage(string messageString)
 {
-	string message_length_string = "";
-	unsigned int prev_message_length = 0,
-				 curr_message_length = message_string.size() +
-				 	 	 	 	 	   message_length_string.size();
+	string messageLengthString = "";
+	unsigned int prevMessageLength = 0,
+				 currMessageLength = messageString.size() +
+				 	 	 	 	 	 messageLengthString.size();
 
 	// Determine the length of the message
 	do
 	{
-		prev_message_length = curr_message_length;
+		prevMessageLength = currMessageLength;
 
-		stringstream num_string_converter;
-		num_string_converter << curr_message_length;
-		num_string_converter >> message_length_string;
+		stringstream numStringConverter;
+		numStringConverter << currMessageLength;
+		numStringConverter >> messageLengthString;
 
-		curr_message_length = message_string.size() +
-							  message_length_string.size();
-	} while(prev_message_length != curr_message_length);
+		currMessageLength = messageString.size() +
+							messageLengthString.size();
+	} while(prevMessageLength != currMessageLength);
 
-	string total_message_string = message_length_string + message_string;
-	char *message_buffer = new char[curr_message_length + 1];
-	strcpy(message_buffer, total_message_string.c_str());
+	string totalMessageString = messageLengthString + messageString;
+	char *messageBuffer = new char[currMessageLength + 1];
+	strcpy(messageBuffer, totalMessageString.c_str());
 
 	// Send the message
-	char *curr_string_ptr = message_buffer;
-	unsigned int total_bytes_written = 0;
-	int curr_bytes_written = -1;
-	bool connection_closed = false;
-	while(total_bytes_written < curr_message_length)
+	char *currStringPtr = messageBuffer;
+	unsigned int totalBytesWritten = 0;
+	int currBytesWritten = -1;
+	while(totalBytesWritten < currMessageLength)
 	{
-		curr_bytes_written = send(m_armTrackingSocket, sendbuf, (int) strlen(sendbuf), 0);
-		if (iResult == SOCKET_ERROR) {
-			closesocket(m_armTrackingSocket);
-			WSACleanup();
-			return -1;
-		}
-
-		curr_bytes_written = send(socket_descriptor,
-								  curr_string_ptr,
-								  curr_message_length - total_bytes_written,
-								  0);
-		if(curr_bytes_written < 0)
+		currBytesWritten = send(m_armTrackingSocket,
+								currStringPtr,
+								currMessageLength - totalBytesWritten,
+								0);
+		if (currBytesWritten == SOCKET_ERROR)
 		{
-			connection_closed = true;
 			break;
 		}
 
-		total_bytes_written += curr_bytes_written;
-		curr_string_ptr += curr_bytes_written;
+		totalBytesWritten += currBytesWritten;
+		currStringPtr += currBytesWritten;
 	}
 
-	delete[] message_buffer;
-	if(connection_closed)
+	delete[] messageBuffer;
+	if(currBytesWritten == SOCKET_ERROR)
 	{
-		close(socket_descriptor);
-		FD_CLR(socket_descriptor, &master_socket_descriptor_set);
-		remove_any_database_entries(socket_descriptor);
-
-		return false;
+		MessageBox(m_hWnd,
+				   TEXT("SocketConnectivity::SendMessage(...):- send(...) failed"),
+				   g_szAppTitle,
+				   MB_OK | MB_ICONHAND);
+		DestroyWindow(m_hWnd);
 	}
 
-	return true;
+	return;
 }
-*/
 // </adeel>
