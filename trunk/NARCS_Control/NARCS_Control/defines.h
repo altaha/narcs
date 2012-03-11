@@ -1,9 +1,10 @@
 #pragma once
 
 //Define exception error codes
-#define INVALID_THREAD_TYPE 1
-#define FAILED_THREAD_CREATE 2
-#define INVALID_PARAM_VALUE 3
+#define UNEXPECTED_ERROR 1
+#define INVALID_THREAD_TYPE 2
+#define FAILED_THREAD_CREATE 3
+#define INVALID_PARAM_VALUE 4
 
 //Thread Defines
 #define NUM_THREADS	5 //plus primary thread

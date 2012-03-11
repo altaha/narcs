@@ -30,6 +30,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		char * exceptionStr;
 		switch (e){
+		case UNEXPECTED_ERROR:
+			exceptionStr = "Unexpected Error in Win32 calls\n";
+			break;
+
 		case INVALID_THREAD_TYPE:
 			exceptionStr = "Specified thread type is invalid\n";
 			break;

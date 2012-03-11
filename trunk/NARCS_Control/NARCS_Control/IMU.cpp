@@ -9,6 +9,7 @@ IMU::IMU(Thread_type type){
 
 IMU::~IMU(void)
 {
+	delete this->_sharedMem;
 }
 
 int IMU::threadMain(void){

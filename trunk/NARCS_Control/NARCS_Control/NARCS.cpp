@@ -63,7 +63,7 @@ void NARCS::stop_threads(void)
 	ThreadObj* activeThreads[NUM_THREADS];
 	HANDLE activeThreadHandles[NUM_THREADS];
 
-	DWORD nThreads=0;
+	int nThreads=0;
 	for (int i=0; i<NUM_THREADS; i++)
 	{
 		if (threadRequired[i] && this->_threads[i]!=NULL && this->_threads[i]->getHandle()!=NULL)
@@ -77,12 +77,10 @@ void NARCS::stop_threads(void)
 	
 	DWORD timeout = 2000; //wait 2 seconds for threads to exit
 	DWORD dead = WaitForMultipleObjects(nThreads,activeThreadHandles,TRUE,timeout);
+	//TODO: handle case if threads don't die after 2 seconds of waiting
+	//Must terminate threads
 	/*if(dead != WAIT_TIMEOUT)
 	{
-		_nActiveThreads--;
-		if( !activeThreads[ dead - WAIT_OBJECT_0]->startThread() ){
-			throw FAILED_THREAD_CREATE;
-		}
 	}*/
 	for(int i=0; i<nThreads; i++)
 	{
@@ -92,12 +90,6 @@ void NARCS::stop_threads(void)
 
 void NARCS::reincarnate(unsigned long timeout)
 {
-	if (timeout == -1){
-		timeout = INFINITE;
-	} else if (timeout < 0){
-		throw INVALID_PARAM_VALUE;
-	}
-
 	ThreadObj* activeThreads[NUM_THREADS];
 	HANDLE activeThreadHandles[NUM_THREADS];
 
