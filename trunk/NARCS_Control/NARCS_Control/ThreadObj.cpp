@@ -4,7 +4,7 @@
 bool ThreadObj::startThread(void)
 {
 	HANDLE temp = NULL;
-	this->_stop = false;
+	this->_stopThread = false;
 
 	temp = (HANDLE) _beginthreadex(NULL, 0, &thread_starting, dynamic_cast<void*>(this), 0, NULL);
 

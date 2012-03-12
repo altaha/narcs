@@ -1,1 +1,53 @@
- 
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ThreadObj" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAACAAUAAAAQAAAAEAAAAARECEAAAAAAQAAAAAAA=</HashCode>
+      <FileName>ThreadObj.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedMem" Collapsed="true">
+    <Position X="4.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EIQAQAQAAiAAAACAAABAAFAkCAABAAAAAABAAAIABJA=</HashCode>
+      <FileName>SharedMem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NARCS" Collapsed="true">
+    <Position X="3" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAIgAABAAAAAAAAAAgCAAABAAIAAAAAAAAA=</HashCode>
+      <FileName>NARCS.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MutexObj" Collapsed="true">
+    <Position X="4.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAEAAAAAAAAAAAAAIAAAAAABIAAAAAgAAAAA=</HashCode>
+      <FileName>SynchObjs.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="IMU" Collapsed="true">
+    <Position X="0.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAABQAAAAAAEAAAAAAAAAAAAAAIA=</HashCode>
+      <FileName>IMU.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EventObj" Collapsed="true">
+    <Position X="3" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAACAAEEAAgAAAAAIAAAAACAAIAAAAAAAAAAAAAA=</HashCode>
+      <FileName>SynchObjs.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="thrdCommBlock" Collapsed="true">
+    <Position X="3" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAABCAAAgAAABAAAAAEBAAAIAAJg=</HashCode>
+      <FileName>SynchObjs.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

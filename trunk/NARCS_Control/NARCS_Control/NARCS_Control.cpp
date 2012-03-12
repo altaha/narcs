@@ -5,7 +5,12 @@
 
 #include "NARCS.h"
 #include "ThreadObj.h"
+#include "SynchObjs.h"
 #include "IMU.h"
+
+#define BUFF_SIZE 1024
+
+thrdCommBlock globCommBlocks[NUM_THREADS];
 
 using namespace std;
 
@@ -14,6 +19,15 @@ int _tmain(int argc, _TCHAR* argv[])
 	NARCS* global;
 	try
 	{
+		//allocate global commBlocks
+		unsigned char shareBuffer[BUFF_SIZE*NUM_THREADS];
+		for(int i=0; i<NUM_THREADS; i++){
+			globCommBlocks[i]._mutex.initMutex();
+			globCommBlocks[i]._event.initEvent(false);
+			globCommBlocks[i]._size = BUFF_SIZE;
+			globCommBlocks[i]._pBuf = shareBuffer+i*BUFF_SIZE;
+		}
+
 		printf("Main thread starting\n");
 
 		global = new NARCS;
@@ -22,7 +36,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		global->start_threads();
 
-		global->reincarnate(2000);
+		//bring to life anythread that dies. This should be in a while loop
+		global->reincarnate(100000);
 
 		getchar();
 	}
@@ -61,9 +76,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	//Exit and cleanup Code
-	printf("Exiting program\n");
 	delete global;
-	getchar();
 	return 0;
 }
 

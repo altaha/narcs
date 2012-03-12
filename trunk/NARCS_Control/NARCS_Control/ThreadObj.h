@@ -2,13 +2,15 @@
 
 #include "stdafx.h"
 
+#include "SynchObjs.h"
+
 //Executed by newly created threads. Points to specific function to execute
 unsigned _stdcall thread_starting(void* param);
 
 class ThreadObj
 {
 public:
-	ThreadObj(void) :_active(false),_stop(false),_handle(NULL){}
+	ThreadObj(void) :_active(false),_stopThread(false),_handle(NULL){}
 	~ThreadObj(void)
 	{}
 
@@ -21,7 +23,7 @@ public:
 
 	void stopThread(void)
 	{
-		_stop = true;
+		_stopThread = true;
 	}
 
 	void setType(Thread_type type)
@@ -39,7 +41,9 @@ public:
 protected:
 	HANDLE _handle;
 	bool _active;	//thread status( running or not)
-	bool _stop;		//command thread to terminate
+	bool _stopThread;		//command thread to terminate
 	Thread_type _type;
+
+	thrdCommBlock* commBlock;
 };
 

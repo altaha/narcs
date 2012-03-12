@@ -12,6 +12,7 @@ public:
 	//allocate threads
 	void allocate_threads(void);
 
+	//start running
 	void start_threads(void);
 
 	//checks for dead threads upto timeout

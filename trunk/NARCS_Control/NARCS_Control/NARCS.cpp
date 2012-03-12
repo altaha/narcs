@@ -79,7 +79,7 @@ void NARCS::stop_threads(void)
 	DWORD dead = WaitForMultipleObjects(nThreads,activeThreadHandles,TRUE,timeout);
 	//TODO: handle case if threads don't die after 2 seconds of waiting
 	//Must terminate threads
-	/*if(dead != WAIT_TIMEOUT)
+	/*if(dead == WAIT_TIMEOUT)
 	{
 	}*/
 	for(int i=0; i<nThreads; i++)
