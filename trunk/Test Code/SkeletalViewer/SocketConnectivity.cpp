@@ -3,9 +3,13 @@
 #include "SocketConnectivity.h"
 #include "SkeletalViewer.h"
 #include <sstream>
-// <debug>
+
+
+//#define ADEEL_DEBUG
+
+#ifdef ADEEL_DEBUG
 #include <fstream>
-// </debug>
+#endif
 
 
 #define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1  192
@@ -17,13 +21,14 @@
 
 using namespace std;
 
-// <debug>
+#ifdef ADEEL_DEBUG
 fstream debugOut("debug.txt", ios::out);
-// </debug>
+#endif
 
 
-SocketConnectivity::SocketConnectivity() : m_armTrackingSocket( INVALID_SOCKET ),
-										   m_hWnd( NULL )
+SocketConnectivity::SocketConnectivity() : m_hWnd( NULL ),
+										   m_armTrackingSocket( INVALID_SOCKET )
+										   
 {
 }
 
@@ -35,10 +40,10 @@ SocketConnectivity::~SocketConnectivity()
 	}
 	WSACleanup();
 
-	// <debug>
+	#ifdef ADEEL_DEBUG
 	debugOut.flush();
 	debugOut.close();
-	// </debug>
+	#endif
 }
 
 void SocketConnectivity::Initialize(HWND hWnd)
@@ -93,63 +98,41 @@ void SocketConnectivity::Initialize(HWND hWnd)
 	}
 }
 
-void SocketConnectivity::SendMessage(string messageString)
+void SocketConnectivity::SendPositionUpdate(float x, float y, float z)
 {
-	string messageLengthString = "";
-	unsigned int prevMessageLength = 0,
-				 currMessageLength = messageString.size() +
-				 	 	 	 	 	 messageLengthString.size();
+    // copy coordinates into m_positionUpdateBuffer
+	memcpy_s( (void *)(m_positionUpdateBuffer), 4, (const void *)(&x), sizeof(x) );
+	memcpy_s( (void *)(m_positionUpdateBuffer + 4), 4, (const void *)(&y), sizeof(y) );
+	memcpy_s( (void *)(m_positionUpdateBuffer + 8), 4, (const void *)(&z), sizeof(z) );
 
-	// Determine the length of the message
-	do
-	{
-		prevMessageLength = currMessageLength;
-
-		stringstream numStringConverter;
-		numStringConverter << currMessageLength;
-		numStringConverter >> messageLengthString;
-
-		currMessageLength = messageString.size() +
-							messageLengthString.size();
-	} while(prevMessageLength != currMessageLength);
-
-	string totalMessageString = messageLengthString + messageString;
-	char *messageBuffer = new char[currMessageLength + 1];
-	strcpy(messageBuffer, totalMessageString.c_str());
 
 	// Send the message
-	char *currStringPtr = messageBuffer;
+	char *currStringPtr = m_positionUpdateBuffer;
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
-	while(totalBytesWritten < currMessageLength)
+	while(totalBytesWritten < POSITION_UPDATE_BUFFER_LENGTH)
 	{
 		currBytesWritten = send(m_armTrackingSocket,
 								currStringPtr,
-								currMessageLength - totalBytesWritten,
+								POSITION_UPDATE_BUFFER_LENGTH - totalBytesWritten,
 								0);
 		if (currBytesWritten == SOCKET_ERROR)
 		{
-			break;
+			MessageBox(m_hWnd,
+					   TEXT("SocketConnectivity::SendMessage(...):- send(...) failed"),
+					   g_szAppTitle,
+					   MB_OK | MB_ICONHAND);
+			DestroyWindow(m_hWnd);
 		}
 
 		totalBytesWritten += currBytesWritten;
 		currStringPtr += currBytesWritten;
 	}
 
-	// <debug>
-	debugOut << messageBuffer << endl;
+	#ifdef ADEEL_DEBUG
+	debugOut << x << ", " << y << ", " << z << endl;
 	debugOut.flush();
-	// </debug>
-
-	delete[] messageBuffer;
-	if(currBytesWritten == SOCKET_ERROR)
-	{
-		MessageBox(m_hWnd,
-				   TEXT("SocketConnectivity::SendMessage(...):- send(...) failed"),
-				   g_szAppTitle,
-				   MB_OK | MB_ICONHAND);
-		DestroyWindow(m_hWnd);
-	}
+	#endif
 
 	return;
 }

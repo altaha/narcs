@@ -4,7 +4,9 @@
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <string>
+
+
+#define POSITION_UPDATE_BUFFER_LENGTH  12
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -17,10 +19,11 @@ public:
 	~SocketConnectivity();
 
 	void Initialize(HWND hWnd);
-	void SendMessage(std::string messageString);
+	void SendPositionUpdate(float x, float y, float z);
 
 private:
-	SOCKET m_armTrackingSocket;
-	HWND m_hWnd;
+	HWND    m_hWnd;
+	SOCKET  m_armTrackingSocket;
+	char    m_positionUpdateBuffer[POSITION_UPDATE_BUFFER_LENGTH];
 };
 //</adeel>

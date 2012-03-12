@@ -20,7 +20,7 @@
 #include <sstream>
 
 
-#define START_POSITION_DETERMINATION_TIME_INTERVAL  2000
+#define START_POSITION_DETERMINATION_TIME_INTERVAL  2000   // specified in milliseconds
 
 using namespace std;
 // </adeel>
@@ -669,6 +669,7 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 		{
 			m_skeletonBeingTracked = -1;
 			m_firstSkeletonFoundTime = -1;
+			m_lastPositionUpdateTime = (long long int)(timeGetTime()) - (long long int)(POSITION_UPDATE_WAIT_TIME_INTERVAL);
 			m_startPositionX = -1;
 			m_startPositionY = -1;
 			m_startPositionZ = -1;
@@ -679,7 +680,7 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 				if( SkeletonFrame.SkeletonData[i].eTrackingState == NUI_SKELETON_TRACKED )
 				{
 					m_skeletonBeingTracked = i;
-					m_firstSkeletonFoundTime = timeGetTime();
+					m_firstSkeletonFoundTime = (long long int)(timeGetTime());
 					break;
 				}
 			}
@@ -694,13 +695,23 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
     {
         return;
     }
+	_NUI_TRANSFORM_SMOOTH_PARAMETERS params1;
+	params1.fSmoothing=0.2;	
+	params1.fJitterRadius=0;
+	params1.fMaxDeviationRadius=0.01;
+	params1.fPrediction=0;
+	params1.fCorrection=0.05;
+	
+	m_pNuiInstance->NuiTransformSmooth(&SkeletonFrame,&params1);
 
 	// smooth out the skeleton data
-    m_pNuiInstance->NuiTransformSmooth(&SkeletonFrame,NULL);
+    //m_pNuiInstance->NuiTransformSmooth(&SkeletonFrame,NULL);
 
+	
 
 	if( ( !m_sendPositionUpdates ) &&
-		( ( timeGetTime() - m_firstSkeletonFoundTime ) > START_POSITION_DETERMINATION_TIME_INTERVAL ) )
+		( ( (long long int)(timeGetTime()) - m_firstSkeletonFoundTime ) >=
+												(long long int)(START_POSITION_DETERMINATION_TIME_INTERVAL) ) )
 	{
 		m_sendPositionUpdates = true;
 		m_startPositionX = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x;
@@ -708,34 +719,20 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 		m_startPositionZ = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z;
 	}
 
-	if( m_sendPositionUpdates )
+	long long int posUpdateTimeDiff = (long long int)(timeGetTime()) - m_lastPositionUpdateTime;
+	if( ( m_sendPositionUpdates ) &&
+		( posUpdateTimeDiff >= (long long int)(POSITION_UPDATE_WAIT_TIME_INTERVAL) ) )
 	{
-		double xCoordNum = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x -
+		m_lastPositionUpdateTime = (long long int)(timeGetTime());
+
+		float xCoord = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x -
 																															m_startPositionX) * 1000;
-		double yCoordNum = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y -
+		float yCoord = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y -
 																															m_startPositionY) * 1000;
-		double zCoordNum = (m_startPositionZ -
+		float zCoord = (m_startPositionZ -
 								SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z) * 1000;
-		stringstream xCoordNumToStringConverter,
-					 yCoordNumToStringConverter,
-					 zCoordNumToStringConverter;
-		string xCoordString,
-			   yCoordString,
-			   zCoordString,
-			   positionUpdateMessage;
 
-
-		xCoordNumToStringConverter << xCoordNum;
-		xCoordNumToStringConverter >> xCoordString;
-	
-		yCoordNumToStringConverter << yCoordNum;
-		yCoordNumToStringConverter >> yCoordString;
-	
-		zCoordNumToStringConverter << zCoordNum;
-		zCoordNumToStringConverter >> zCoordString;
-
-		positionUpdateMessage = ", " + xCoordString + ", " + yCoordString + ", " + zCoordString;
-		m_socketConnectivity.SendMessage(positionUpdateMessage);
+		m_socketConnectivity.SendPositionUpdate(xCoord, yCoord, zCoord);
 	}
 	
 
@@ -809,3 +806,4 @@ RGBQUAD CSkeletalViewerApp::Nui_ShortToQuad_Depth( USHORT s )
 
     return q;
 }
+

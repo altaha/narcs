@@ -22,6 +22,9 @@
 #include <strsafe.h>
 #include "SkeletalViewer.h"
 #include "resource.h"
+// <adeel>
+#include <mmsystem.h>
+// </adeel>
 
 
 // Global Variables:
@@ -83,6 +86,7 @@ CSkeletalViewerApp::CSkeletalViewerApp()
 	// <adeel>
 	m_skeletonBeingTracked = -1;
     m_firstSkeletonFoundTime = -1;
+	m_lastPositionUpdateTime = (long long int)(timeGetTime()) - (long long int)(POSITION_UPDATE_WAIT_TIME_INTERVAL);
 	m_startPositionX = -1;
 	m_startPositionY = -1;
 	m_startPositionZ = -1;
