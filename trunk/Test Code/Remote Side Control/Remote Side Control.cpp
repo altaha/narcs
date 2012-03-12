@@ -3,20 +3,81 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 #include <iostream>
-#include <sstream>
-#include <string>
+#include <MMSystem.h>
+
 
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
 #import "C:\Program Files\CRS Robotics\ActiveRobot\ActiveRobot.dll"
 
-#define DEFAULT_PORT "62009"
-#define DEFAULT_BUFLEN 512
+
+#define DEFAULT_PORT  "62009"
+#define ARM_SPEED  80
+#define POISTION_UPDATE_BUFFER_LENGTH  12
+//#define ADEEL_DEBUG
+
+#ifdef ADEEL_DEBUG
+#include <fstream>
+#endif
+
 
 using namespace ACTIVEROBOTLib;
 using namespace std;
 
 
 int main() {
+	if FAILED(CoInitialize(NULL))
+	{
+		AfxMessageBox("CoInitialize() failed.");
+		exit(1);
+	}
+
+	ICRSRobotPtr Robot =
+					ICRSRobotPtr(__uuidof(CRSRobot));
+	try
+	{
+		Robot->ControlGet();
+		Robot->PutSpeed(ARM_SPEED);
+		Robot->PutBlendMotion(-1);
+		Robot->Ready();
+		Robot->Finish(ftTight);
+	}
+	catch (_com_error MyError)
+	{
+		char WorkString[255];
+		sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
+		AfxMessageBox(WorkString);
+		Robot->ControlRelease();
+		exit(1);
+	}
+
+	ICRSLocationPtr readyPosition = Robot->GetWorldLocation(
+														ptActual);
+	const float readyPositionX = readyPosition->Getx(),
+		        readyPositionY = readyPosition->Gety(),
+		        readyPositionZ = readyPosition->Getz();
+
+	ICRSLocationPtr endEffectorPosition = 
+							ICRSLocationPtr(__uuidof(CRSLocation));
+
+	try
+	{
+		locFlags flags = readyPosition->GetFlags();
+		flags = (locFlags)(flags | locBase);
+		endEffectorPosition->PutFlags(flags);
+		endEffectorPosition->PutClass(readyPosition->GetClass());
+		endEffectorPosition->PutRobotType(locRCA255);
+	}
+	catch (_com_error MyError)
+	{
+		char WorkString[255];
+		sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
+		AfxMessageBox(WorkString);
+		Robot->ControlRelease();
+		exit(1);
+	}
+	
+
     int iResult, iSendResult;
 
 	WSADATA wsaData;	//to inialize Windows socket dll
@@ -28,7 +89,9 @@ int main() {
 	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 	if (iResult) {
 		printf("WSAStartup failed: %d\n", iResult);
-		return 1;
+		Robot->ControlRelease();
+		cin.get();
+		return -1;
 	}
 
 	//Creating socker IP address
@@ -43,7 +106,9 @@ int main() {
 	if (iResult) {
 		printf("getaddrinfofailed: %d\n", iResult);
 		WSACleanup();
-		return 1;
+		Robot->ControlRelease();
+		cin.get();
+		return -1;
 	}
 	
 	//Create a SOCKET for the server to listen for client connections
@@ -53,7 +118,9 @@ int main() {
 		printf("Error at socket(): %ld\n", WSAGetLastError());
 		freeaddrinfo(result);
 		WSACleanup();
-		return 1;
+		Robot->ControlRelease();
+		cin.get();
+		return -1;
 	}
 
 	//Setup the TCP listening socket
@@ -63,7 +130,9 @@ int main() {
 		freeaddrinfo(result);
 		closesocket(ListenSocket);
 		WSACleanup();
-		return 1;
+		Robot->ControlRelease();
+		cin.get();
+		return -1;
 	}
 
 	freeaddrinfo(result);	// no longer need the address information
@@ -72,7 +141,9 @@ int main() {
 		printf("Listen failed with error: %ld\n", WSAGetLastError());
 		closesocket(ListenSocket);
 		WSACleanup();
-		return 1;
+		Robot->ControlRelease();
+		cin.get();
+		return -1;
 	}
 	
 	printf("All good. Waiting for request\n");
@@ -82,116 +153,117 @@ int main() {
 		printf("accept failed: %d\n", WSAGetLastError());
 		closesocket(ListenSocket);
 		WSACleanup();
+		Robot->ControlRelease();
 		cin.get();
-		return 1;
+		return -1;
 	}
 
 	printf("Accept succeeded\n\n");
+	
 
-
-
-	bool error = false;
-	char one_char_str_buffer[2];
+	
+	char position_update_buffer[POISTION_UPDATE_BUFFER_LENGTH];
 	int curr_bytes_read = -1;
 	unsigned int total_bytes_read = 0;
-	unsigned long int message_length = 0;
-	char *curr_string_ptr = NULL;
-
-	one_char_str_buffer[1] = NULL;
+	char *curr_buffer_ptr = position_update_buffer;
+	float endEffectorX,
+		  endEffectorY,
+		  endEffectorZ;
+	
+#ifdef ADEEL_DEBUG
+	int moveStartTime;
+	fstream debugOut("debug.txt", ios::out);
+#endif
 	while(true)
 	{
-		// Read message length
-		error = false;
+		// Read main message contents
 		curr_bytes_read = -1;
 		total_bytes_read = 0;
-		string message_length_str;
-		message_length = 0;
-		do
-		{
-			curr_bytes_read = recv(ClientSocket, one_char_str_buffer, 1, 0);
-			if(curr_bytes_read <= 0)
-			{
-				error = true;
-				break;
-			}
-
-			total_bytes_read += curr_bytes_read;
-
-			if(one_char_str_buffer[0] == ',')
-				break;
-
-			message_length_str += one_char_str_buffer;
-		} while(1);
-
-		if(error)
-		{
-			if (curr_bytes_read == 0)
-			{
-				printf("Connection closing...\n");
-				closesocket(ClientSocket);
-				WSACleanup();
-				cin.get();
-				return 0;
-			}
-			else
-			{
-				printf("recv failed: %d\n", WSAGetLastError());
-				closesocket(ClientSocket);
-				WSACleanup();
-				cin.get();
-				return -1;
-			}
-		}
-
-		stringstream num_string_converter;
-
-		num_string_converter << message_length_str;
-		num_string_converter >> message_length;
-
-		// Read main message contents
-		char *message_buffer = new char[message_length -
-										message_length_str.length()];
-		curr_string_ptr = message_buffer;
-		while(total_bytes_read < message_length)
+		curr_buffer_ptr = position_update_buffer;
+		while(total_bytes_read < POISTION_UPDATE_BUFFER_LENGTH)
 		{
 			curr_bytes_read = recv(ClientSocket,
-								   curr_string_ptr,
-								   message_length - total_bytes_read,
+								   curr_buffer_ptr,
+								   POISTION_UPDATE_BUFFER_LENGTH - total_bytes_read,
 								   0);
-			if(curr_bytes_read <= 0)
-			{
-				error = true;
-				break;
-			}
-
-			total_bytes_read += curr_bytes_read;
-			curr_string_ptr += curr_bytes_read;
-		}
-
-		if(error)
-		{
-			delete[] message_buffer;
 			if (curr_bytes_read == 0)
 			{
 				printf("Connection closing...\n");
 				closesocket(ClientSocket);
 				WSACleanup();
+				Robot->ControlRelease();
 				cin.get();
+#ifdef ADEEL_DEBUG
+				debugOut.close();
+#endif
 				return 0;
 			}
-			else
+			else if (curr_bytes_read < 0)
 			{
 				printf("recv failed: %d\n", WSAGetLastError());
 				closesocket(ClientSocket);
 				WSACleanup();
+				Robot->ControlRelease();
 				cin.get();
+#ifdef ADEEL_DEBUG
+				debugOut.close();
+#endif
 				return -1;
 			}
+
+			total_bytes_read += curr_bytes_read;
+			curr_buffer_ptr += curr_bytes_read;
 		}
 
-		*curr_string_ptr = NULL;
-		cout << message_length_str << ", " << message_buffer << endl;
-		delete[] message_buffer;
+		memcpy_s( (void *)(&endEffectorX),
+				  sizeof(endEffectorX),
+			      (const void *)(position_update_buffer + 8),
+				  4);
+		memcpy_s( (void *)(&endEffectorY),
+				  sizeof(endEffectorY),
+				  (const void *)(position_update_buffer),
+				  4);
+		memcpy_s( (void *)(&endEffectorZ),
+				  sizeof(endEffectorZ),
+				  (const void *)(position_update_buffer + 4),
+				  4);
+
+		endEffectorX += readyPositionX;
+		endEffectorY = endEffectorY * (-1);
+		endEffectorY += readyPositionY;
+		endEffectorZ += readyPositionZ;
+
+		try
+		{
+			endEffectorPosition->Putx(endEffectorX);
+			endEffectorPosition->Puty(endEffectorY);
+			endEffectorPosition->Putz(endEffectorZ);
+			//Robot->Stop();
+#ifdef ADEEL_DEBUG
+			moveStartTime = timeGetTime();
+#endif
+			Robot->Stop();
+			Robot->Move(endEffectorPosition);
+			//Robot->Finish(ftLoose);
+#ifdef ADEEL_DEBUG
+			debugOut << timeGetTime() - moveStartTime << endl;
+			debugOut.flush();
+#endif
+		}
+		catch (_com_error MyError)
+		{
+			char WorkString[255];
+			sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
+			AfxMessageBox(WorkString);
+			closesocket(ClientSocket);
+			WSACleanup();
+			Robot->ControlRelease();
+			cin.get();
+#ifdef ADEEL_DEBUG
+			debugOut.close();
+#endif
+			return -1;
+		}
 	}
 
 	/*
@@ -210,7 +282,7 @@ int main() {
 				printf("send failed: %d\n", WSAGetLastError());
 				closesocket(ClientSocket);
 				WSACleanup();
-				return 1;
+				return -1;
 			}
 			printf("Bytes sent: %d\n", iSendResult);
 			printf("sendbuf = \"%s\"\n\n", recvbuf);
@@ -220,7 +292,7 @@ int main() {
 			printf("recv failed: %d\n", WSAGetLastError());
 			closesocket(ClientSocket);
 			WSACleanup();
-			return 1;
+			return -1;
 		}
 
 	} while (iResult > 0);
