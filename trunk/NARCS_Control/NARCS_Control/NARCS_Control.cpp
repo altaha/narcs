@@ -28,18 +28,38 @@ int _tmain(int argc, _TCHAR* argv[])
 			globCommBlocks[i]._pBuf = shareBuffer+i*BUFF_SIZE;
 		}
 
-		printf("Main thread starting\n");
-
+		printf("Starting threads\n");
 		global = new NARCS;
-
 		global->allocate_threads();
-
 		global->start_threads();
 
-		//bring to life anythread that dies. This should be in a while loop
-		global->reincarnate(100000);
+		while(1) //loop infinitely
+		{
+			//read data from threads
+			for(int i=0; i<NUM_THREADS; i++)
+			{
+				if(threadRequired[i])
+				{
+					orient_data test;
+					//wait for new data
+					if( waitEvent(globCommBlocks[i]._event, 10) )
+					{
+						 //get Mutex before reading
+						if ( lockMutex(globCommBlocks[i]._mutex, 2) )
+						{
+							globCommBlocks[i].readSingle(test, 0);
+							//release Mutex after reading
+							unlockMutex(globCommBlocks[i]._mutex);
+							printf("I read roll:%f, pitch:%f, yaw:%f\n",
+									test.roll, test.pitch, test.yaw);
+						}
+					}
+				}
+			}
 
-		getchar();
+			//bring back to life any thread that dies
+			global->reincarnate(0);
+		}
 	}
 	catch (int e)
 	{

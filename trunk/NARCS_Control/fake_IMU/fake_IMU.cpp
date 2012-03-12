@@ -35,13 +35,13 @@ int main(){
 	while(loop_count < 100)
 	{
 		//Steps:
-		//1. Acquire Mutex
+		//1. Lock Mutex
 		//2. Write to shared memory
 		//3. Set Event
 		//4. Release Mutex
 
 		//lockMutex(ghMutex, INFINITE) ) //Wait infinitely
-		if( lockMutex(ghMutex, 1000) ) //returns true when Mutex is obtained
+		if( lockMutex(ghMutex, 100) ) //returns true when Mutex is obtained
 		{
 			printf("I wrote roll:%f, pitch:%f, yaw:%f\n", test_data.roll, test_data.pitch, test_data.yaw);
 			sharedMemory.writeSingle(test_data, 0);

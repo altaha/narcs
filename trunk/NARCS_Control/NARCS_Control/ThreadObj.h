@@ -43,7 +43,5 @@ protected:
 	bool _active;	//thread status( running or not)
 	bool _stopThread;		//command thread to terminate
 	Thread_type _type;
-
-	thrdCommBlock* commBlock;
 };
 
