@@ -3,15 +3,19 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 #include <iostream>
+#include <MMSystem.h>
 
 
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
 #import "C:\Program Files\CRS Robotics\ActiveRobot\ActiveRobot.dll"
 
 
 #define DEFAULT_PORT  "62009"
-#define ARM_SPEED  80
+#define ARM_SPEED  100
 #define POSITION_UPDATE_BUFFER_LENGTH  12
+#define POSITION_UPDATE_WAIT_INTERVAL_MS  400
+#define POSITION_SCALNG_FACTOR  0.5
 //#define ADEEL_DEBUG
 
 #ifdef ADEEL_DEBUG
@@ -266,6 +270,10 @@ int main() {
 				  (const void *)(position_update_buffer + 4),
 				  4);
 
+		endEffectorX *= POSITION_SCALNG_FACTOR;
+		endEffectorY *= POSITION_SCALNG_FACTOR;
+		endEffectorZ *= POSITION_SCALNG_FACTOR;
+
 		endEffectorX += readyPositionX;
 		endEffectorY = endEffectorY * (-1);
 		endEffectorY += readyPositionY;
@@ -300,7 +308,9 @@ int main() {
 #endif
 			return -1;
 		}
-	}
+
+		//Sleep(POSITION_UPDATE_WAIT_INTERVAL_MS);
+	} // while(true)
 
 	
 	return 0;
