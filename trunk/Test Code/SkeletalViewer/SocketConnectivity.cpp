@@ -96,6 +96,34 @@ void SocketConnectivity::Initialize(HWND hWnd)
 		DestroyWindow(m_hWnd);
 		return;
 	}
+
+	// make the socket non-blocking
+	u_long socketMode = 1;
+	ioctlsocket(m_armTrackingSocket, FIONBIO, &socketMode);
+}
+
+bool SocketConnectivity::RemoteComputerWantsPositionUpdate()
+{
+	recv(m_armTrackingSocket, m_positionUpdateBuffer, 1, 0);
+
+	int errorCode = WSAGetLastError();
+	if( errorCode == 0 )
+	{
+		return true;
+	}
+	else if( errorCode == WSAEWOULDBLOCK )
+	{
+		return false;
+	}
+	else
+	{
+		MessageBox(m_hWnd,
+				   TEXT("SocketConnectivity::RemoteComputerWantsPositionUpdate():- recv(...) failed"),
+				   g_szAppTitle,
+				   MB_OK | MB_ICONHAND);
+		DestroyWindow(m_hWnd);
+		return false;
+	}
 }
 
 void SocketConnectivity::SendPositionUpdate(float x, float y, float z)

@@ -21,7 +21,7 @@
 #define WM_USER_UPDATE_FPS                  WM_USER
 #define WM_USER_UPDATE_COMBO                WM_USER+1
 // <adeel>
-#define POSITION_UPDATE_WAIT_TIME_INTERVAL  2000   // specified in milliseconds
+#define POSITION_UPDATE_WAIT_TIME_INTERVAL  600   // specified in milliseconds
 // </adeel>
 
 class CSkeletalViewerApp
@@ -59,7 +59,7 @@ private:
 	SocketConnectivity         m_socketConnectivity;
     int                        m_skeletonBeingTracked;
     long long int              m_firstSkeletonFoundTime;
-	long long int              m_lastPositionUpdateTime;
+	//long long int              m_lastPositionUpdateTime;
 	float                      m_startPositionX;
 	float                      m_startPositionY;
 	float                      m_startPositionZ;

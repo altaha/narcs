@@ -19,6 +19,7 @@ public:
 	~SocketConnectivity();
 
 	void Initialize(HWND hWnd);
+	bool RemoteComputerWantsPositionUpdate();
 	void SendPositionUpdate(float x, float y, float z);
 
 private:

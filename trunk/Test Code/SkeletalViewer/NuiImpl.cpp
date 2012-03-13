@@ -669,7 +669,7 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 		{
 			m_skeletonBeingTracked = -1;
 			m_firstSkeletonFoundTime = -1;
-			m_lastPositionUpdateTime = (long long int)(timeGetTime()) - (long long int)(POSITION_UPDATE_WAIT_TIME_INTERVAL);
+			//m_lastPositionUpdateTime = (long long int)(timeGetTime()) - (long long int)(POSITION_UPDATE_WAIT_TIME_INTERVAL);
 			m_startPositionX = -1;
 			m_startPositionY = -1;
 			m_startPositionZ = -1;
@@ -719,6 +719,20 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 		m_startPositionZ = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z;
 	}
 
+	if( ( m_sendPositionUpdates ) &&
+		( m_socketConnectivity.RemoteComputerWantsPositionUpdate() ) )
+	{
+		float xCoord = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x -
+																															m_startPositionX) * 1000;
+		float yCoord = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y -
+																															m_startPositionY) * 1000;
+		float zCoord = (m_startPositionZ -
+								SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z) * 1000;
+
+		m_socketConnectivity.SendPositionUpdate(xCoord, yCoord, zCoord);
+	}
+
+	/*
 	long long int posUpdateTimeDiff = (long long int)(timeGetTime()) - m_lastPositionUpdateTime;
 	if( ( m_sendPositionUpdates ) &&
 		( posUpdateTimeDiff >= (long long int)(POSITION_UPDATE_WAIT_TIME_INTERVAL) ) )
@@ -734,8 +748,8 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 
 		m_socketConnectivity.SendPositionUpdate(xCoord, yCoord, zCoord);
 	}
+	*/
 	
-
     // we found a skeleton, re-start the timer
     m_bScreenBlanked = false;
     m_LastSkeletonFoundTime = -1;
