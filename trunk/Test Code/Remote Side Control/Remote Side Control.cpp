@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <MMSystem.h>
+#include <math.h>
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -15,7 +16,13 @@
 #define ARM_SPEED  100
 #define POSITION_UPDATE_BUFFER_LENGTH  12
 #define POSITION_UPDATE_WAIT_INTERVAL_MS  400
-#define POSITION_SCALNG_FACTOR  0.5
+#define POSITION_SCALNG_FACTOR  0.75
+//#define MAX_ARM_REACH_MM  650
+#define END_EFFECTOR_LENGTH_MM  153
+#define END_EFFECTOR_SUPPORT_LINK_LENGTH_MM  52
+//#define NEG_ANGLE_GROUND_DETECTION_OFFSET_MM  28
+#define Z_MIN_MM  50
+#define PI  3.14159265
 //#define ADEEL_DEBUG
 
 #ifdef ADEEL_DEBUG
@@ -58,6 +65,9 @@ int main() {
 	const float readyPositionX = readyPosition->Getx(),
 		        readyPositionY = readyPosition->Gety(),
 		        readyPositionZ = readyPosition->Getz();
+	// <debug>
+	VARIANT_BOOL isValid = readyPosition->GetIsValid();
+	// </debug>
 
 	ICRSLocationPtr endEffectorPosition = 
 							ICRSLocationPtr(__uuidof(CRSLocation));
@@ -168,12 +178,18 @@ int main() {
 	char *curr_buffer_ptr = position_update_buffer;
 	float endEffectorX,
 		  endEffectorY,
-		  endEffectorZ;
+		  endEffectorZ,
+		  endEffectorYrot,
+		  endEffectorZMin = 0;
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
-
+	double currArmReach = 0;
+	// <debug>
+	endEffectorPosition->Putyrot(110);
+	// </debug>
+	
 #ifdef ADEEL_DEBUG
-	int moveStartTime;
+	//int moveStartTime;
 	fstream debugOut("debug.txt", ios::out);
 #endif
 	while(true)
@@ -279,36 +295,208 @@ int main() {
 		endEffectorY += readyPositionY;
 		endEffectorZ += readyPositionZ;
 
-		try
-		{
-			endEffectorPosition->Putx(endEffectorX);
-			endEffectorPosition->Puty(endEffectorY);
-			endEffectorPosition->Putz(endEffectorZ);
+		endEffectorYrot = endEffectorPosition->Getyrot(); 
+
 #ifdef ADEEL_DEBUG
-			moveStartTime = timeGetTime();
+		/*
+		debugOut << "endEffectorYrot = "
+				 << endEffectorYrot
+				 << endl;
+				 */
 #endif
-			Robot->MoveStraight(endEffectorPosition);
-			Robot->Finish(ftLoose);
+		if( endEffectorYrot > 0 )
+		{
+			endEffectorZMin = 
+				endEffectorZ -
+				( float )( END_EFFECTOR_LENGTH_MM ) *
+				sin( endEffectorYrot *
+					 ( ( float )( PI ) ) /
+					 ( ( float )( 180 ) ) );
 #ifdef ADEEL_DEBUG
-			debugOut << timeGetTime() - moveStartTime << endl;
+			debugOut << "endEffectorYrot = " << endEffectorYrot << endl
+					 << "sin(endEffectorYrot) = " 
+					 <<	 sin( endEffectorYrot *
+							  ( ( float )( PI ) ) /
+							  ( ( float )( 180 ) ) ) << endl
+					 << "sinOpMult = "
+					 << ( float )( END_EFFECTOR_LENGTH_MM ) *
+						sin( endEffectorYrot *
+							 ( ( float )( PI ) ) /
+							 ( ( float )( 180 ) ) ) << endl;
+			debugOut.flush();
+#endif
+
+		}
+		else if( endEffectorYrot < 0 )
+		{
+			endEffectorZMin = 
+				endEffectorZ -
+				( float )( END_EFFECTOR_SUPPORT_LINK_LENGTH_MM ) *
+				sin( ( float )( -1 ) * endEffectorYrot *
+					 ( ( float )( PI ) ) /
+					 ( ( float )( 180 ) ) );
+#ifdef ADEEL_DEBUG
+			debugOut << "endEffectorYrot = " << endEffectorYrot << endl
+					 << "sin(endEffectorYrot) = " 
+					 <<	 sin( endEffectorYrot *
+							  ( ( float )( PI ) ) /
+							  ( ( float )( 180 ) ) ) << endl
+					 << "sinOpMult = "
+					 << ( float )( END_EFFECTOR_LENGTH_MM ) *
+						sin( endEffectorYrot *
+							 ( ( float )( PI ) ) /
+							 ( ( float )( 180 ) ) ) << endl;
 			debugOut.flush();
 #endif
 		}
-		catch (_com_error MyError)
+		else
 		{
-			char WorkString[255];
-			sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
-			AfxMessageBox(WorkString);
-			closesocket(ClientSocket);
-			WSACleanup();
-			Robot->ControlRelease();
-			cin.get();
-#ifdef ADEEL_DEBUG
-			debugOut.close();
-#endif
-			return -1;
+			endEffectorZMin = endEffectorZ;
 		}
 
+#ifdef ADEEL_DEBUG
+		debugOut << "endEffectorZ = " << endEffectorZ << endl
+				 << "endEffectorZMin = " << endEffectorZMin << endl;
+		debugOut.flush();
+#endif
+
+		if( endEffectorZMin >= (float)(Z_MIN_MM) )
+		{
+			try
+			{
+				endEffectorPosition->Putx(endEffectorX);
+				endEffectorPosition->Puty(endEffectorY);
+				endEffectorPosition->Putz(endEffectorZ);
+#ifdef ADEEL_DEBUG
+				//moveStartTime = timeGetTime();
+				//debugOut << "Before = "
+				//		 << endEffectorPosition->GetIsValid() << endl;
+#endif
+				try
+				{
+					Robot->MoveStraight(endEffectorPosition);
+					Robot->Finish(ftLoose);
+				}
+				catch(...)
+				{
+					printf("Trying to move to an invalid location!\n");
+#ifdef ADEEL_DEBUG
+					//debugOut << "Trying to move to an invalid location:"
+					//			<< endl
+					//debugOut << endEffectorX << ", "
+					//		 << endEffectorY << ", "
+					//		 << endEffectorZ << endl;
+					//debugOut.flush();
+#endif
+				}
+			
+#ifdef ADEEL_DEBUG
+				//debugOut << timeGetTime() - moveStartTime << endl;
+				//debugOut << "After = "
+				//		 << endEffectorPosition->GetIsValid() << endl;
+				//debugOut.flush();
+#endif
+			}
+			catch (_com_error MyError)
+			{
+				char WorkString[255];
+				sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
+				AfxMessageBox(WorkString);
+				closesocket(ClientSocket);
+				WSACleanup();
+				Robot->ControlRelease();
+				cin.get();
+	#ifdef ADEEL_DEBUG
+				debugOut.close();
+	#endif
+				return -1;
+			} // catch (_com_error MyError)
+		}
+		else
+		{
+			printf("Ground collision detected!\n");
+#ifdef ADEEL_DEBUG
+			debugOut << "Ground collision detected:"
+					 << endl
+					 << endEffectorX << ", "
+					 << endEffectorY << ", "
+					 << endEffectorZ << endl << endl;
+			debugOut.flush();
+#endif
+		}
+
+		
+
+		/*
+		currArmReach = sqrt( pow( (double)(endEffectorX), 2 ) +
+			 				 pow( (double)(endEffectorY), 2 ) +
+							 pow( (double)(endEffectorZ), 2 ) );
+		if( currArmReach < MAX_ARM_REACH_MM )
+		{
+			try
+			{
+				endEffectorPosition->Putx(endEffectorX);
+				endEffectorPosition->Puty(endEffectorY);
+				endEffectorPosition->Putz(endEffectorZ);
+#ifdef ADEEL_DEBUG
+
+				//moveStartTime = timeGetTime();
+				//debugOut << "Before = "
+				//		 << endEffectorPosition->GetIsValid() << endl;
+#endif
+				try
+				{
+					Robot->MoveStraight(endEffectorPosition);
+					Robot->Finish(ftLoose);
+				}
+				catch(...)
+				{
+					printf("Trying to move to an invalid location!\n");
+#ifdef ADEEL_DEBUG
+					debugOut << "Trying to move to an invalid location:"
+							 << endl
+							 << endEffectorX << ", "
+							 << endEffectorY << ", "
+							 << endEffectorZ << endl;
+					debugOut.flush();
+#endif
+				}
+			
+#ifdef ADEEL_DEBUG
+				//debugOut << timeGetTime() - moveStartTime << endl;
+				//debugOut << "After = "
+				//		 << endEffectorPosition->GetIsValid() << endl;
+				//debugOut.flush();
+#endif
+			}
+			catch (_com_error MyError)
+			{
+				char WorkString[255];
+				sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
+				AfxMessageBox(WorkString);
+				closesocket(ClientSocket);
+				WSACleanup();
+				Robot->ControlRelease();
+				cin.get();
+#ifdef ADEEL_DEBUG
+				debugOut.close();
+#endif
+				return -1;
+			} // catch (_com_error MyError)
+		} // if( currArmReach < MAX_ARM_REACH_MM )
+		else
+		{
+			printf("Max arm reach exceeded!\n");
+#ifdef ADEEL_DEBUG
+			debugOut << "Max arm reach exceeded:"
+					 << endl
+					 << endEffectorX << ", "
+					 << endEffectorY << ", "
+					 << endEffectorZ << endl;
+			debugOut.flush();
+#endif
+		} // else
+		*/
 		//Sleep(POSITION_UPDATE_WAIT_INTERVAL_MS);
 	} // while(true)
 
