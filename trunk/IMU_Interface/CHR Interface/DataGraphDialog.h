@@ -1,5 +1,10 @@
 #pragma once
 
+// <debug>
+#include "SharedMemWrapper.h"
+#include "SyncObjsWrapper.h"
+// </debug>
+
 using namespace System;
 using namespace System::ComponentModel;
 using namespace System::Collections;
@@ -15,6 +20,7 @@ using namespace StopWatch;
 
 #define	MAX_GRAPH_LISTS		255
 #define	COLOR_COUNT			10
+
 
 namespace CHRInterface {
 
@@ -574,17 +580,17 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			this->tabPage4->Padding = System::Windows::Forms::Padding(3);
 			this->tabPage4->Size = System::Drawing::Size(346, 178);
 			this->tabPage4->TabIndex = 3;
-			this->tabPage4->Text = L"Log File";
+			this->tabPage4->Text = L"Send Data";
 			this->tabPage4->UseVisualStyleBackColor = true;
 			// 
 			// stopLoggingButton
 			// 
 			this->stopLoggingButton->Enabled = false;
-			this->stopLoggingButton->Location = System::Drawing::Point(120, 59);
+			this->stopLoggingButton->Location = System::Drawing::Point(162, 59);
 			this->stopLoggingButton->Name = L"stopLoggingButton";
-			this->stopLoggingButton->Size = System::Drawing::Size(88, 23);
+			this->stopLoggingButton->Size = System::Drawing::Size(88, 34);
 			this->stopLoggingButton->TabIndex = 3;
-			this->stopLoggingButton->Text = L"Stop Logging";
+			this->stopLoggingButton->Text = L"Stop Sending Data";
 			this->stopLoggingButton->UseVisualStyleBackColor = true;
 			this->stopLoggingButton->Click += gcnew System::EventHandler(this, &DataGraphDialog::stopLoggingButton_Click);
 			// 
@@ -593,9 +599,9 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			this->startLoggingButton->Enabled = false;
 			this->startLoggingButton->Location = System::Drawing::Point(17, 59);
 			this->startLoggingButton->Name = L"startLoggingButton";
-			this->startLoggingButton->Size = System::Drawing::Size(88, 23);
+			this->startLoggingButton->Size = System::Drawing::Size(84, 34);
 			this->startLoggingButton->TabIndex = 2;
-			this->startLoggingButton->Text = L"Start Logging";
+			this->startLoggingButton->Text = L"Start Sending Data";
 			this->startLoggingButton->UseVisualStyleBackColor = true;
 			this->startLoggingButton->Click += gcnew System::EventHandler(this, &DataGraphDialog::startLoggingButton_Click);
 			// 
@@ -631,7 +637,7 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(354, 205);
+			this->ClientSize = System::Drawing::Size(354, 207);
 			this->Controls->Add(this->tabControl);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^  >(resources->GetObject(L"$this.Icon")));
 			this->MaximizeBox = false;
@@ -639,9 +645,9 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			this->MinimumSize = System::Drawing::Size(370, 243);
 			this->Name = L"DataGraphDialog";
 			this->Text = L"Data Graph";
-			this->Load += gcnew System::EventHandler(this, &DataGraphDialog::DataGraphDialog_Load);
-			this->FormClosed += gcnew System::Windows::Forms::FormClosedEventHandler(this, &DataGraphDialog::DataGraphDialog_FormClosed);
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &DataGraphDialog::DataGraphDialog_FormClosing_1);
+			this->FormClosed += gcnew System::Windows::Forms::FormClosedEventHandler(this, &DataGraphDialog::DataGraphDialog_FormClosed);
+			this->Load += gcnew System::EventHandler(this, &DataGraphDialog::DataGraphDialog_Load);
 			this->Resize += gcnew System::EventHandler(this, &DataGraphDialog::DataGraphDialog_Resize);
 			this->tabControl->ResumeLayout(false);
 			this->tabPage1->ResumeLayout(false);

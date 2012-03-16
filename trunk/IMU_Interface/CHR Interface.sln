@@ -1,7 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CHR Interface", "CHR Interface\CHR Interface.vcproj", "{163F327F-1A5D-4E92-9E63-249B317287F4}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CHR Interface", "CHR Interface\CHR Interface.vcxproj", "{163F327F-1A5D-4E92-9E63-249B317287F4}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "CH Robotics Serial Interface", "CH Robotics Serial Interface\CH Robotics Serial Interface.vdproj", "{A54689BB-AF14-45CD-BF33-8E64217B1AF5}"
 EndProject

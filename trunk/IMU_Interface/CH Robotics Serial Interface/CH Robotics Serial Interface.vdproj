@@ -21,19 +21,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_0D6FFD653C5643CC8247334ED804B023"
+        "OwnerKey" = "8:_0A56C1712EAE451BBB53BEBAA4E55B2F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_277092A9931F45B08AF9F6B805347625"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_2B1B4D22F9C13812C0974AB798B72434"
-        "OwnerKey" = "8:_0A56C1712EAE451BBB53BEBAA4E55B2F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_6E8BE35E4692E9B7B492D4ECE2045E81"
+        "MsmKey" = "8:_77C7840FD9F06F7E75D18B971D41F38F"
         "OwnerKey" = "8:_0A56C1712EAE451BBB53BEBAA4E55B2F"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -45,19 +45,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_8A7CD221C5B5692CD6E15C4F230FD17C"
+        "OwnerKey" = "8:_0A56C1712EAE451BBB53BEBAA4E55B2F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_95B853DD57FE4CA29E99834E7ECC2285"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_ABC96BE5AA97417B8721E029B7960508"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_DF72CFE3205EFC7A8187C73053CF6288"
+        "MsmKey" = "8:_BD69D27CAF424593B7CA3CF49134AE52"
         "OwnerKey" = "8:_0A56C1712EAE451BBB53BEBAA4E55B2F"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -82,19 +82,19 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_6E8BE35E4692E9B7B492D4ECE2045E81"
+        "OwnerKey" = "8:_77C7840FD9F06F7E75D18B971D41F38F"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_DF72CFE3205EFC7A8187C73053CF6288"
+        "OwnerKey" = "8:_BD69D27CAF424593B7CA3CF49134AE52"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_2B1B4D22F9C13812C0974AB798B72434"
+        "OwnerKey" = "8:_8A7CD221C5B5692CD6E15C4F230FD17C"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -194,7 +194,7 @@
                 {
                 "Name" = "8:.NET Framework"
                 "Message" = "8:[VSDNETMSG]"
-                "Version" = "8:3.5.21022"
+                "FrameworkVersion" = "8:3.5.21022"
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=76617"
                 }
@@ -222,51 +222,15 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_2B1B4D22F9C13812C0974AB798B72434"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:GeneralMatrix, Version=1.0.3704.18418, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_2B1B4D22F9C13812C0974AB798B72434"
-                    {
-                    "Name" = "8:generalmatrix.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:generalmatrix.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_8BB8F91748B945A5AC2CBE50D4719A91"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_6E8BE35E4692E9B7B492D4ECE2045E81"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_77C7840FD9F06F7E75D18B971D41F38F"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:StopWatch, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_6E8BE35E4692E9B7B492D4ECE2045E81"
-                    {
-                    "Name" = "8:stopwatch.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
-            "SourcePath" = "8:stopwatch.dll"
+            "SourcePath" = "8:StopWatch.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_8BB8F91748B945A5AC2CBE50D4719A91"
@@ -304,6 +268,37 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_8A7CD221C5B5692CD6E15C4F230FD17C"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:GeneralMatrix, Version=1.0.3704.18418, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_8A7CD221C5B5692CD6E15C4F230FD17C"
+                    {
+                    "Name" = "8:GeneralMatrix.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:GeneralMatrix.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_8BB8F91748B945A5AC2CBE50D4719A91"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_95B853DD57FE4CA29E99834E7ECC2285"
             {
             "SourcePath" = "8:..\\CHR Interface\\firmware\\UM2A.xml"
@@ -324,40 +319,20 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ABC96BE5AA97417B8721E029B7960508"
-            {
-            "SourcePath" = "8:..\\CHR Interface\\firmware\\UM2B.XML"
-            "TargetName" = "8:UM2B.XML"
-            "Tag" = "8:"
-            "Folder" = "8:_8BB8F91748B945A5AC2CBE50D4719A91"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_DF72CFE3205EFC7A8187C73053CF6288"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_BD69D27CAF424593B7CA3CF49134AE52"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:ZedGraph, Version=5.1.5.28844, Culture=neutral, PublicKeyToken=02a83cbd123fcd60, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_DF72CFE3205EFC7A8187C73053CF6288"
+                    "_BD69D27CAF424593B7CA3CF49134AE52"
                     {
-                    "Name" = "8:zedgraph.dll"
+                    "Name" = "8:ZedGraph.dll"
                     "Attributes" = "3:512"
                     }
                 }
-            "SourcePath" = "8:zedgraph.dll"
+            "SourcePath" = "8:ZedGraph.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_8BB8F91748B945A5AC2CBE50D4719A91"
@@ -496,6 +471,7 @@
         "ProductCode" = "8:{227663D3-82A4-4BF7-B17D-4751B54DA37D}"
         "PackageCode" = "8:{FAAB1DA0-433F-45B8-8B7F-F559EA145A01}"
         "UpgradeCode" = "8:{335A476C-8FD8-4CDB-8E47-C3C54A07CA7E}"
+        "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
@@ -1037,12 +1013,26 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_0D6FFD653C5643CC8247334ED804B023"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:Microsoft_VC100_DebugCRT_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_0A56C1712EAE451BBB53BEBAA4E55B2F"
             {
-            "SourcePath" = "8:..\\Release\\CHR Interface.exe"
+            "SourcePath" = "8:..\\Debug\\CHR Interface.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_8BB8F91748B945A5AC2CBE50D4719A91"

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="CHR Interface">
+</Property><Property Name="Solution File" Value="C:\Work\University\Fourth Year Design Project\Code Workspace\IMU_Interface\CHR Interface.sln">
+</Property><Property Name="Date" Value="Thursday, March 15, 2012">
+</Property><Property Name="Time" Value="21:06 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="CHR Interface.sln" Description="File successfully backed up as C:\Work\University\Fourth Year Design Project\Code Workspace\IMU_Interface\CHR Interface.sln.old">
+</Event><Event ErrorLevel="0" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Converting project file 'C:\Work\University\Fourth Year Design Project\Code Workspace\IMU_Interface\CHR Interface\CHR Interface.vcproj'.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'AssemblyReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'CopyLocalDependencies' of 'ProjectReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Attribute 'UseDependenciesInBuild' of 'ProjectReference' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="0" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Done converting to new project file 'C:\Work\University\Fourth Year Design Project\Code Workspace\IMU_Interface\CHR Interface\CHR Interface.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="CHR Interface" Source="CHR Interface\CHR Interface.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="StopWatch" Source="StopWatch\StopWatch.csproj" Description="Project file successfully backed up as C:\Work\University\Fourth Year Design Project\Code Workspace\IMU_Interface\StopWatch\StopWatch.csproj.old">
+</Event><Event ErrorLevel="0" Project="StopWatch" Source="StopWatch\StopWatch.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="StopWatch" Source="StopWatch\StopWatch.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="CHR Interface.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="CHR Interface.sln" Description="Converted">
+</Event><Event ErrorLevel="0" Project="StopWatch" Source="StopWatch\StopWatch.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event></UpgradeLog>
