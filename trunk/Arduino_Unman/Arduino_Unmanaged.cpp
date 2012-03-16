@@ -49,16 +49,18 @@ int _tmain(int argc, _TCHAR* argv[])
 	//error occureed. Inform user
 	}
 
-	char szBuff[2] = {0};
+	char szBuff[3] = {0}; //read buffer
+	char szwBuff[1] = {0}; //write buffer
 	DWORD dwBytesRead = 0;
 	while(true){
-		if(!ReadFile(hSerial, szBuff, 2, &dwBytesRead, NULL)){
+		if(!ReadFile(hSerial, szBuff, 3, &dwBytesRead, NULL)){
 		//error occurred. Report to user.
 			cout<<"error\n";
 		}
-		
-		int val = ( int )( ( ( szBuff[0] & 0xff )  << 8 ) | ( szBuff[1] & 0xff ) );
-		if( val > 1023 )
+		char check=(char)szBuff[0];
+		cout<<check<<endl;
+		int val = ( int )( ( ( szBuff[2] & 0xff )  << 8 ) | ( szBuff[1] & 0xff ) );
+		if(check !='c')
 		{
 			cout << "BOO YASHAKA" << endl;
 			if(!ReadFile(hSerial, szBuff, 1, &dwBytesRead, NULL)){
@@ -68,6 +70,16 @@ int _tmain(int argc, _TCHAR* argv[])
 			
 		}
 		cout << "val = " << val << endl;
+
+		if(val<850)
+			szwBuff[0]='o';
+		else
+			szwBuff[0]='r';
+		
+		if(!WriteFile(hSerial, szwBuff, 1, &dwBytesRead, NULL)){
+			//error occurred. Report to user.
+			cout<<"error on write\n";
+		}
 
 	}
 	
