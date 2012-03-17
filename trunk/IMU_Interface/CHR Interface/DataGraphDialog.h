@@ -20,7 +20,17 @@ using namespace StopWatch;
 
 #define	MAX_GRAPH_LISTS		255
 #define	COLOR_COUNT			10
+// <adeel>
+#define PROCESSED_X_GYRO_NOISE_RANGE_HIGH_THRESHOLD  45.0
+#define PROCESSED_X_GYRO_NOISE_RANGE_LOW_THRESHOLD   25.0
+#define PROCESSED_Y_GYRO_NOISE_RANGE_HIGH_THRESHOLD  5.0
+#define PROCESSED_Y_GYRO_NOISE_RANGE_LOW_THRESHOLD  -15.0
 
+#define PROCESSED_X_ACCEL_NOISE_RANGE_HIGH_THRESHOLD  0.15
+#define PROCESSED_X_ACCEL_NOISE_RANGE_LOW_THRESHOLD   -0.15
+#define PROCESSED_Y_ACCEL_NOISE_RANGE_HIGH_THRESHOLD  0.15
+#define PROCESSED_Y_ACCEL_NOISE_RANGE_LOW_THRESHOLD   -0.15
+// </adeel>
 
 namespace CHRInterface {
 
@@ -65,7 +75,8 @@ namespace CHRInterface {
 			yMin = 0;
 			yMax = 0;
 			
-			timer1->Interval = 50;
+			//timer1->Interval = 50;
+			timer1->Interval = 20;
 			time = 0;
 
 			colors = gcnew cli::array<Color>(COLOR_COUNT);
@@ -727,6 +738,63 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 				 {
 					 data = -1.0;
 				 }
+
+				 // <adeel>
+				 /*
+				 if( i == 0 )
+				 {
+					 if( ( data >= ( double )( PROCESSED_X_GYRO_NOISE_RANGE_LOW_THRESHOLD ) ) &&
+						 ( data <= ( double )( PROCESSED_X_GYRO_NOISE_RANGE_HIGH_THRESHOLD ) ) )
+					 {
+						 data = 0;
+					 }
+					 else if( data < ( double )( PROCESSED_X_GYRO_NOISE_RANGE_LOW_THRESHOLD ) )
+					 {
+						 data -= PROCESSED_X_GYRO_NOISE_RANGE_LOW_THRESHOLD;
+					 }
+					 else
+					 {
+						 data -= PROCESSED_X_GYRO_NOISE_RANGE_HIGH_THRESHOLD;
+					 }
+				 }
+				 */
+
+				 if( i == 0 )
+				 {
+					 if( ( data >= ( double )( PROCESSED_X_ACCEL_NOISE_RANGE_LOW_THRESHOLD ) ) &&
+						 ( data <= ( double )( PROCESSED_X_ACCEL_NOISE_RANGE_HIGH_THRESHOLD ) ) )
+					 {
+						 data = 0;
+					 }
+				 }
+				 else if( i == 1 )
+				 {
+					 if( ( data >= ( double )( PROCESSED_Y_ACCEL_NOISE_RANGE_LOW_THRESHOLD ) ) &&
+						 ( data <= ( double )( PROCESSED_Y_ACCEL_NOISE_RANGE_HIGH_THRESHOLD ) ) )
+					 {
+						 data = 0;
+					 }
+				 }
+
+				 /*
+				 if( i == 0 )
+				 {
+					 if( ( data >= (double)(PROCESSED_X_GYRO_NOISE_RANGE_LOW_THRESHOLD) ) &&
+						 ( data <= (double)(PROCESSED_X_GYRO_NOISE_RANGE_HIGH_THRESHOLD) ) )
+					 {
+						 data = 0;
+					 }
+				 }
+				 else if( i == 1 )
+				 {
+					 if( ( data >= (double)(PROCESSED_Y_GYRO_NOISE_RANGE_LOW_THRESHOLD) ) &&
+						 ( data <= (double)(PROCESSED_Y_GYRO_NOISE_RANGE_HIGH_THRESHOLD) ) )
+					 {
+						 data = 0;
+					 }
+				 }
+				 */
+				 // </adeel>
 
 				 this->dataGraphList[i]->Add(time, data);
 
