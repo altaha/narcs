@@ -8,11 +8,16 @@
 #include "SharedMem.h"
 #include "SynchObjs.h"
 //#include "IMU.h"
-// <debug>
 #include <iostream>
-#include <AtlBase.h>
-#include <AtlConv.h>
-// </debug>
+
+
+//#define ADEEL_DEBUG
+
+
+#ifdef ADEEL_DEBUG
+#include <fstream>
+#endif
+
 
 
 //#define BUFF_SIZE 1024
@@ -26,8 +31,8 @@ using namespace std;
 
 typedef struct IMUData
 {
-	float roll;
 	float pitch;
+	float roll;
 } IMUData;
 
 
@@ -46,6 +51,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	MutexObj IMUSharedMemoryMutex = MutexObj();
 	IMUData imuData;
 
+#ifdef ADEEL_DEBUG
+	fstream debugOut("IMUDebug.txt", ios::out);
+#endif
+
 	while(!IMUSharedMemory.isValid())
 	{
 		if(!IMUSharedMemory.Start(0))
@@ -61,19 +70,26 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 
 	// <debug>
-	for(int i = 0; i < 1000; i++)
+	for(int i = 0; i < 500; i++)
 	{
 		if ( lockMutex(IMUSharedMemoryMutex, INFINITE) ){
 			IMUSharedMemory.readBytes((void *)(&imuData), sizeof(imuData), 0);
 			unlockMutex(IMUSharedMemoryMutex);
-			cout << "Roll = " << imuData.roll << ", " << "Pitch = " << imuData.pitch << endl;
+			//cout << "Pitch = " << imuData.pitch << ", Roll = " << imuData.roll << endl;
+#ifdef ADEEL_DEBUG
+			debugOut << "Pitch = " << imuData.pitch << ", Roll = " << imuData.roll << endl;
+			debugOut.flush();
+#endif
 		}
-		Sleep(100);
+		Sleep(50);
 	}
 	// </debug>
 
+#ifdef ADEEL_DEBUG
+	debugOut.close();
+#endif
 
-
+	return 0;
 
 
 
