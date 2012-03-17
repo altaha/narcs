@@ -1,16 +1,13 @@
 #pragma once
 
 
-#include <tchar.h>
-
-
 extern class MutexObj;
 extern class EventObj;
 
 #define INFINITE_WAIT  0xFFFFFFFF
 
 
-class MutexObjWrapper
+ref class MutexObjWrapper
 {
 public:
 	MutexObjWrapper(void);
@@ -18,7 +15,7 @@ public:
 
 	bool initMutex(void);
 	//create named mutexes. Used for inter-process sharing
-	bool initNamedMutex(TCHAR* name, bool create);
+	bool initNamedMutex(wchar_t *name, bool create);
 
 	//use INFINITE_WAIT for infinite blocking waits
 	bool lockMutexWrapper(unsigned int timeout_ms);
@@ -29,7 +26,7 @@ private:
 };
 
 
-class EventObjWrapper
+ref class EventObjWrapper
 {
 public:
 	EventObjWrapper(void);
@@ -37,7 +34,7 @@ public:
 
 	bool initEvent(bool manual);
 	//create named events. Used for inter-process sharing
-	bool initNamedEvent(TCHAR* name, bool creator, bool manual);
+	bool initNamedEvent(wchar_t *name, bool creator, bool manual);
 
 	void setEventWrapper(void);
 	bool waitEventWrapper(unsigned int timeout_ms);

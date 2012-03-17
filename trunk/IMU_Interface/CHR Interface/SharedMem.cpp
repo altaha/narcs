@@ -1,7 +1,4 @@
-//#include "stdafx.h"
 #include "SharedMem.h"
-
-//using namespace msclr::interop;
 
 //SharedMem
 SharedMem::SharedMem(int size, TCHAR* name, bool creator)

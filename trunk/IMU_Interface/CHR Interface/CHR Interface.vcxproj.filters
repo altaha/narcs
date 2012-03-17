@@ -63,10 +63,13 @@
     <ClCompile Include="SharedMem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SyncObjsWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="SharedMemWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SyncObjsWrapper.cpp">
+    <ClCompile Include="UnmanagedClassHandling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -119,13 +122,13 @@
     <ClInclude Include="SharedMem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TestClass.h">
+    <ClInclude Include="SyncObjsWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SharedMemWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SyncObjsWrapper.h">
+    <ClInclude Include="UnmanagedClassHandling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

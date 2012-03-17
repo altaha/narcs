@@ -5,20 +5,11 @@
 
 #pragma once
 
-//#include "stdafx.h"
 #include <stdio.h>
 #include <tchar.h>
 
 #include <comdef.h>
 #include <Windows.h>
-//#include <process.h>
-
-//using namespace System;
-//using namespace System::Runtime::InteropServices;
-//using namespace Microsoft::Win32::SafeHandles;
-//using namespace System::IO;
-
-//#include <Windows.h>
 
 class SharedMem{
 

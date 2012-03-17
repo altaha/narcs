@@ -1,18 +1,26 @@
 #include "SharedMemWrapper.h"
 #include "SharedMem.h"
+#include "UnmanagedClassHandling.h"
 
-
-SharedMemWrapper::SharedMemWrapper(int size, TCHAR* name, bool creator) : sharedMem(new SharedMem(size, name, creator))
+SharedMemWrapper::SharedMemWrapper(int size, wchar_t *name, bool creator)
 {
+	minitialize();
+	sharedMem = new SharedMem(size,
+							  name,
+							  creator);
 }
 
-SharedMemWrapper::SharedMemWrapper(TCHAR* name, bool creator) : sharedMem(new SharedMem(name, creator))
+SharedMemWrapper::SharedMemWrapper(wchar_t *name, bool creator)
 {
+	minitialize();
+	sharedMem = new SharedMem(name,
+							  creator);
 }
 
 SharedMemWrapper::~SharedMemWrapper(void)
 {
 	delete sharedMem;
+	mterminate();
 }
 
 bool SharedMemWrapper::Start(int offset)

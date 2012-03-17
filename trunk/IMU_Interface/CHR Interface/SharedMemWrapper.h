@@ -1,17 +1,14 @@
 #pragma once
 
 
-#include <tchar.h>
-
-
 extern class SharedMem;
 
 
-class SharedMemWrapper
+ref class SharedMemWrapper
 {
 public:
-	SharedMemWrapper(int size, TCHAR* name, bool creator);
-	SharedMemWrapper(TCHAR* name, bool creator);
+	SharedMemWrapper(int size, wchar_t *name, bool creator);
+	SharedMemWrapper(wchar_t *name, bool creator);
 
 	~SharedMemWrapper(void);
 

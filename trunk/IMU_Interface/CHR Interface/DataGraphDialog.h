@@ -1,9 +1,9 @@
 #pragma once
 
-// <debug>
+// <adeel>
 #include "SharedMemWrapper.h"
 #include "SyncObjsWrapper.h"
-// </debug>
+// <adeel>
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -38,6 +38,14 @@ namespace CHRInterface {
 	public:
 		DataGraphDialog(void)
 		{
+			// <adeel>
+			this->IMUSharedMemory = gcnew SharedMemWrapper (sizeof(float)*2, L"IMUSharedMemory", true);
+			this->IMUSharedMemory->Start(0);
+	
+			this->IMUSharedMemoryMutex = gcnew MutexObjWrapper;
+			this->IMUSharedMemoryMutex->initNamedMutex(L"IMUSharedMemoryMutex", true);
+			// </adeel>
+
 			InitializeComponent();
 
 			graphTime = gcnew Stopwatch;
@@ -220,6 +228,10 @@ namespace CHRInterface {
 				delete components;
 			}
 		}
+	// <adeel>
+	private: SharedMemWrapper^ IMUSharedMemory;
+	private: MutexObjWrapper^ IMUSharedMemoryMutex;
+	// </adeel>
 	private: ZedGraph::ZedGraphControl^  graphControl;
 	private: System::Windows::Forms::TabControl^  tabControl;
 
@@ -709,11 +721,13 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 			 			 
 			 time = this->graphTime->Elapsed;
 
+			 /*
 			 if( loggingEnabled )
 			 {
 				logFile->Write(time.ToString());
 				logFile->Write(L",");
 			 }
+			 */
 
 			 // Update graph contents based on most recently received data
 			 for( UInt32 i = 0; i < this->dataListCount; i++ )
@@ -748,6 +762,7 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 
 				 this->dataGraphList[i]->Add(time, data);
 
+				 /*
 				 // If logging is enabled, write the data to file
 				 if( loggingEnabled )
 				 {
@@ -757,13 +772,28 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 						 logFile->Write(L",");
 					 }
 				 }
+				 */
+				 // <adeel>
+				 if( ( loggingEnabled ) &&
+					 ( i < 2 ) )
+				 {
+					 float floatData = (float)(data);
+
+					 IMUSharedMemoryMutex->lockMutexWrapper(INFINITE_WAIT);
+					 IMUSharedMemory->writeBytes((const void *)(&floatData),
+												 sizeof(floatData),
+												 i*sizeof(floatData));
+					 IMUSharedMemoryMutex->unlockMutexWrapper();
+				 }
+				 // </adeel>
 
 			 }
-
+			 /*
 			 if( loggingEnabled )
 			 {
 				logFile->Write(logFile->NewLine);				
 			 }
+			 */
 
 			 this->RefreshGraph();
 		 }
@@ -811,6 +841,7 @@ private: System::Void logFileBrowseButton_Click(System::Object^  sender, System:
 		 }
 private: System::Void startLoggingButton_Click(System::Object^  sender, System::EventArgs^  e) 
 		 {
+			 /*
 			 if( this->logFile != nullptr )
 			 {
 				 logFile->Close();
@@ -820,11 +851,11 @@ private: System::Void startLoggingButton_Click(System::Object^  sender, System::
 			 {
 				 this->logFile = gcnew StreamWriter(saveFileDialog1->FileName);
 			 }
-			 catch( Exception^ /*e*/ )
+			 catch( Exception^ )
 			 {
 				 return;
 			 }
-
+			 
 			 logFile->Write(L"Time (s),");			 
 
 			 // If file opened properly, write heading to file
@@ -839,6 +870,7 @@ private: System::Void startLoggingButton_Click(System::Object^  sender, System::
 			 }
 
 			 logFile->Write(logFile->NewLine);
+			 */
 			 
 			 this->loggingEnabled = true;
 			 this->startLoggingButton->Enabled = false;
@@ -847,7 +879,9 @@ private: System::Void startLoggingButton_Click(System::Object^  sender, System::
 		 }
 private: System::Void stopLoggingButton_Click(System::Object^  sender, System::EventArgs^  e) 
 		 {
+			 /*
 			 this->logFile->Close();
+			 */
 
 			 this->loggingEnabled = false;
 			 this->startLoggingButton->Enabled = true;

@@ -157,6 +157,9 @@
     <ClCompile Include="SyncObjsWrapper.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="UnmanagedClassHandling.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataGraphDialog.h">
@@ -183,7 +186,7 @@
     <ClInclude Include="STM32Programmer.h" />
     <ClInclude Include="SynchObjs.h" />
     <ClInclude Include="SyncObjsWrapper.h" />
-    <ClInclude Include="TestClass.h" />
+    <ClInclude Include="UnmanagedClassHandling.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.ico" />
