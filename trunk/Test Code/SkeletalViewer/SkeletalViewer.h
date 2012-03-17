@@ -16,12 +16,15 @@
 #include "MSR_NuiApi.h"
 #include "DrawDevice.h"
 #include "SocketConnectivity.h"
+#include "SharedMem.h"
+#include "SynchObjs.h"
+#include "KinectData.h"
 
 #define SZ_APPDLG_WINDOW_CLASS              _T("SkeletalViewerAppDlgWndClass")
 #define WM_USER_UPDATE_FPS                  WM_USER
 #define WM_USER_UPDATE_COMBO                WM_USER+1
 // <adeel>
-#define POSITION_UPDATE_WAIT_TIME_INTERVAL  600   // specified in milliseconds
+//#define POSITION_UPDATE_WAIT_TIME_INTERVAL  600   // specified in milliseconds
 // </adeel>
 
 class CSkeletalViewerApp
@@ -56,7 +59,10 @@ private:
     void UpdateComboBox();
 
 	// <adeel>
-	SocketConnectivity         m_socketConnectivity;
+	SharedMem                  *m_kinectSharedMemory;
+	MutexObj                   *m_kinectSharedMemoryMutex;
+	KinectData                 m_kinectData;
+	//SocketConnectivity         m_socketConnectivity;
     int                        m_skeletonBeingTracked;
     long long int              m_firstSkeletonFoundTime;
 	//long long int              m_lastPositionUpdateTime;

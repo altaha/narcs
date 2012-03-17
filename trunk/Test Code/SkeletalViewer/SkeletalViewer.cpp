@@ -84,6 +84,19 @@ CSkeletalViewerApp::CSkeletalViewerApp()
     ::InitializeCriticalSection(&m_critSecUi);
     m_fUpdatingUi = false;
 	// <adeel>
+	m_kinectSharedMemory = new SharedMem(sizeof(m_kinectData), TEXT("kinectSharedMemory"), true);
+	m_kinectSharedMemory->Start(0);
+	m_kinectSharedMemoryMutex = new MutexObj();
+	m_kinectSharedMemoryMutex->initNamedMutex(TEXT("kinectSharedMemoryMutex"), true);
+
+	// write initial position to shared memory
+	m_kinectData.rightHandX = 0;
+	m_kinectData.rightHandY = 0;
+	m_kinectData.rightHandZ = 0;
+	lockMutex(*m_kinectSharedMemoryMutex, INFINITE);
+	m_kinectSharedMemory->writeBytes((const void *)(&m_kinectData), sizeof(m_kinectData), 0);
+	unlockMutex(*m_kinectSharedMemoryMutex);
+
 	m_skeletonBeingTracked = -1;
     m_firstSkeletonFoundTime = -1;
 	//m_lastPositionUpdateTime = (long long int)(timeGetTime()) - (long long int)(POSITION_UPDATE_WAIT_TIME_INTERVAL);
@@ -97,6 +110,10 @@ CSkeletalViewerApp::CSkeletalViewerApp()
 
 CSkeletalViewerApp::~CSkeletalViewerApp()
 {
+	// <adeel>
+	delete m_kinectSharedMemory;
+	delete m_kinectSharedMemoryMutex;
+	// </adeel>
     ::DeleteCriticalSection(&m_critSecUi);
     Nui_Zero();
     ::SysFreeString(m_instanceId);
@@ -173,7 +190,7 @@ LRESULT CALLBACK CSkeletalViewerApp::WndProc(HWND hWnd, UINT message, WPARAM wPa
             // Bind application window handle
             m_hWnd=hWnd;
 			// <adeel>
-			m_socketConnectivity.Initialize(hWnd);
+			//m_socketConnectivity.Initialize(hWnd);
 			// <adeel>
 
             // Initialize and start NUI processing

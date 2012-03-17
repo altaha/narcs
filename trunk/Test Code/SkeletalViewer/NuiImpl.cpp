@@ -675,6 +675,14 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 			m_startPositionZ = -1;
 			m_sendPositionUpdates = false;
 
+			m_kinectData.rightHandX = 0;
+			m_kinectData.rightHandY = 0;
+			m_kinectData.rightHandZ = 0;
+			lockMutex(*m_kinectSharedMemoryMutex, INFINITE);
+			m_kinectSharedMemory->writeBytes((const void *)(&m_kinectData), sizeof(m_kinectData), 0);
+			unlockMutex(*m_kinectSharedMemoryMutex);
+
+
 			for( int i = 0 ; i < NUI_SKELETON_COUNT ; i++ )
 			{
 				if( SkeletonFrame.SkeletonData[i].eTrackingState == NUI_SKELETON_TRACKED )
@@ -695,6 +703,7 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
     {
         return;
     }
+
 	_NUI_TRANSFORM_SMOOTH_PARAMETERS params1;
 	params1.fSmoothing=0.2;	
 	params1.fJitterRadius=0;
@@ -711,7 +720,7 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 
 	if( ( !m_sendPositionUpdates ) &&
 		( ( (long long int)(timeGetTime()) - m_firstSkeletonFoundTime ) >=
-												(long long int)(START_POSITION_DETERMINATION_TIME_INTERVAL) ) )
+										(long long int)(START_POSITION_DETERMINATION_TIME_INTERVAL) ) )
 	{
 		m_sendPositionUpdates = true;
 		m_startPositionX = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x;
@@ -719,17 +728,19 @@ void CSkeletalViewerApp::Nui_GotSkeletonAlert( )
 		m_startPositionZ = SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z;
 	}
 
-	if( ( m_sendPositionUpdates ) &&
-		( m_socketConnectivity.RemoteComputerWantsPositionUpdate() ) )
+	if( m_sendPositionUpdates )
 	{
-		float xCoord = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x -
+		m_kinectData.rightHandX = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].x -
 																															m_startPositionX) * 1000;
-		float yCoord = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y -
+		m_kinectData.rightHandY = (SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].y -
 																															m_startPositionY) * 1000;
-		float zCoord = (m_startPositionZ -
-								SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z) * 1000;
+		m_kinectData.rightHandZ = (m_startPositionZ -
+								  SkeletonFrame.SkeletonData[m_skeletonBeingTracked].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT].z) * 1000;
 
-		m_socketConnectivity.SendPositionUpdate(xCoord, yCoord, zCoord);
+		// write position update to shared memory
+		lockMutex(*m_kinectSharedMemoryMutex, INFINITE);
+		m_kinectSharedMemory->writeBytes((const void *)(&m_kinectData), sizeof(m_kinectData), 0);
+		unlockMutex(*m_kinectSharedMemoryMutex);
 	}
 
 	/*
