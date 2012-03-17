@@ -25,10 +25,9 @@ void NARCS::allocate_threads(void)
 	for (int i=0; i<NUM_THREADS; i++){
 		if (threadRequired[i]){
 			switch (i){
-				case IMU_THREAD:
+				case KINECT_AND_IMU_THREAD:
 					_threads[i] = new IMU ( (Thread_type) i);
 					break;
-				case KINECT_THREAD:
 				case ARDUINO_THREAD:
 				case ROBO_ARM_THREAD:
 				default:

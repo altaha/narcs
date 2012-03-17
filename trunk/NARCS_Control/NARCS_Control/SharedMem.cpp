@@ -43,6 +43,7 @@ bool SharedMem::CreateOrOpen()
 			INVALID_HANDLE_VALUE, //shared memory instead of mem-mapped file
 			NULL, //default security (cannot be inherited by child processes)
 			PAGE_READWRITE, //Allow read/write access
+			//FILE_MAP_ALL_ACCESS, //Allow read/write access
 			0,
 			this->m_Size,
 			this->m_Name );	//Name of shared memory

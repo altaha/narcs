@@ -54,7 +54,7 @@ bool SharedMem::CreateOrOpen()
 	}
 	else{
 		this->m_Handle = OpenFileMapping(
-                   FILE_MAP_ALL_ACCESS,   // read/write access
+                   PAGE_READWRITE,   // read/write access
                    FALSE,                 // do not inherit the name
                    this->m_Name);        // name of shared memory object
 		if (this->m_Handle == NULL){

@@ -24,7 +24,7 @@ int IMU::threadMain(void)
 		EventObj ipcEvent = EventObj();
 		MutexObj ipcMutex = MutexObj();
 		//Object used for communication within threads (globals initialized by main thread)
-		thrdCommBlock* commBlock = &(globCommBlocks[IMU_THREAD]);
+		thrdCommBlock* commBlock = &(globCommBlocks[KINECT_AND_IMU_THREAD]);
 		EventObj* localEvent = &(commBlock->_event);
 		MutexObj* localMutex = &(commBlock->_mutex);
 		

@@ -12,16 +12,14 @@
 class NARCS; //forward declaration
 
 typedef enum Thread_type {
-	IMU_THREAD,			//Thread for IMU
-	KINECT_THREAD,		//Thread to get Kinect data
+	KINECT_AND_IMU_THREAD,	// thread for sending Kinect and IMU data to the remote side
 	ARDUINO_THREAD,
 	ROBO_ARM_THREAD,
 } Thread_type;
 
 static bool threadRequired[NUM_THREADS] =	//set which threads (modules) will be used
 {
-	true,	//IMU_THREAD
-	false,	//KINECT_THREAD
+	true,	//KINECT_AND_IMU_THREAD
 	false,	//ARDUINO_THREAD
 	false,	//ROBO_ARM_THREAD
 };

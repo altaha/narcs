@@ -1,21 +1,89 @@
 // NARCS_Control.cpp : Defines the entry point for the console application.
 //
 
+
 #include "stdafx.h"
-
-#include "NARCS.h"
-#include "ThreadObj.h"
+//#include "NARCS.h"
+//#include "ThreadObj.h"
+#include "SharedMem.h"
 #include "SynchObjs.h"
-#include "IMU.h"
+//#include "IMU.h"
+// <debug>
+#include <iostream>
+#include <AtlBase.h>
+#include <AtlConv.h>
+// </debug>
 
-#define BUFF_SIZE 1024
+
+//#define BUFF_SIZE 1024
+
 
 thrdCommBlock globCommBlocks[NUM_THREADS];
 
+
 using namespace std;
 
+
+typedef struct IMUData
+{
+	float roll;
+	float pitch;
+} IMUData;
+
+
+/* 
+  MAIN THREAD:
+  ============
+
+  Responsible for:
+	- TODO:- Setting up all sockets
+	- TODO:- Starting any additional threads
+	- Responding to poistion and orientation update requests from the remote side
+*/
 int _tmain(int argc, _TCHAR* argv[])
 {
+	SharedMem IMUSharedMemory = SharedMem(TEXT("IMUSharedMemory"), false);
+	MutexObj IMUSharedMemoryMutex = MutexObj();
+	IMUData imuData;
+
+	while(!IMUSharedMemory.isValid())
+	{
+		if(!IMUSharedMemory.Start(0))
+		{
+			Sleep(500);
+		}
+	}
+		
+	while(!IMUSharedMemoryMutex.isValid() && !IMUSharedMemoryMutex.initNamedMutex(TEXT("IMUSharedMemoryMutex"), false))
+	{
+		Sleep(500);
+	}
+	
+
+	// <debug>
+	for(int i = 0; i < 1000; i++)
+	{
+		if ( lockMutex(IMUSharedMemoryMutex, INFINITE) ){
+			IMUSharedMemory.readBytes((void *)(&imuData), sizeof(imuData), 0);
+			unlockMutex(IMUSharedMemoryMutex);
+			cout << "Roll = " << imuData.roll << ", " << "Pitch = " << imuData.pitch << endl;
+		}
+		Sleep(100);
+	}
+	// </debug>
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
 	NARCS* global;
 	try
 	{
@@ -98,5 +166,5 @@ int _tmain(int argc, _TCHAR* argv[])
 	//Exit and cleanup Code
 	delete global;
 	return 0;
+	*/
 }
-
