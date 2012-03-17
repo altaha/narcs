@@ -251,7 +251,6 @@ namespace CHRInterface {
 
 	private: Stopwatch^ graphTime;
 	
-	private: System::IO::StreamWriter^ logFile;
 	private: bool dataSendingEnabled;
 
 	private: bool autoSetAxes;
@@ -698,14 +697,6 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 			 			 
 			 time = this->graphTime->Elapsed;
 
-			 /*
-			 if( dataSendingEnabled )
-			 {
-				logFile->Write(time.ToString());
-				logFile->Write(L",");
-			 }
-			 */
-
 			 // Update graph contents based on most recently received data
 			 for( UInt32 i = 0; i < this->dataListCount; i++ )
 			 {
@@ -739,17 +730,6 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 
 				 this->dataGraphList[i]->Add(time, data);
 
-				 /*
-				 // If logging is enabled, write the data to file
-				 if( dataSendingEnabled )
-				 {
-					 logFile->Write(data.ToString());
-					 if( i < this->dataListCount - 1 )
-					 {
-						 logFile->Write(L",");
-					 }
-				 }
-				 */
 				 // <adeel>
 				 if( ( dataSendingEnabled ) &&
 					 ( i < 2 ) )
@@ -765,12 +745,6 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 				 // </adeel>
 
 			 }
-			 /*
-			 if( dataSendingEnabled )
-			 {
-				logFile->Write(logFile->NewLine);				
-			 }
-			 */
 
 			 this->RefreshGraph();
 		 }
@@ -808,59 +782,18 @@ private: System::Void textBox_ylabel_TextChanged(System::Object^  sender, System
 		 }
 private: System::Void startSendingDataButton_Click(System::Object^  sender, System::EventArgs^  e) 
 		 {
-			 /*
-			 if( this->logFile != nullptr )
-			 {
-				 logFile->Close();
-			 }
-
-			 try
-			 {
-				 this->logFile = gcnew StreamWriter(saveFileDialog1->FileName);
-			 }
-			 catch( Exception^ )
-			 {
-				 return;
-			 }
-			 
-			 logFile->Write(L"Time (s),");			 
-
-			 // If file opened properly, write heading to file
-			 for( UInt32 i = 0; i < this->dataListCount; i++ )
-			 {
-				 FirmwareItem^ current_item = this->firmware->GetDataItem(this->dataItemIndexes[i]);
-				 logFile->Write(current_item->Text);
-				 if( i < (dataListCount-1) )
-				 {
-					 logFile->Write(L",");
-				 }
-			 }
-
-			 logFile->Write(logFile->NewLine);
-			 */
-			 
 			 this->dataSendingEnabled = true;
 			 this->startSendingDataButton->Enabled = false;
 			 this->stopSendingDataButton->Enabled = true;
 		}
 private: System::Void stopSendingDataButton_Click(System::Object^  sender, System::EventArgs^  e) 
 		 {
-			 /*
-			 this->logFile->Close();
-			 */
-
 			 this->dataSendingEnabled = false;
 			 this->startSendingDataButton->Enabled = true;
 			 this->stopSendingDataButton->Enabled = false;
 		 }
 private: System::Void DataGraphDialog_FormClosing_1(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e) {
-			 /*
-			 if( this->logFile != nullptr )
-			 {
-				 logFile->Close();
-				 dataSendingEnabled = false;
-			 }
-			 */
+			 dataSendingEnabled = false;
 		 }
 };
 }
