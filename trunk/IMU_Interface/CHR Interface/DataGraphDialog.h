@@ -53,7 +53,7 @@ namespace CHRInterface {
 			dataGraphList = gcnew cli::array<RollingPointPairList^>(MAX_GRAPH_LISTS);
 			this->dataListCount = 0;
 
-			loggingEnabled = false;
+			dataSendingEnabled = false;
 
 			dataItemIndexes = gcnew cli::array<UInt32,1>(MAX_GRAPH_LISTS);
 			
@@ -252,7 +252,7 @@ namespace CHRInterface {
 	private: Stopwatch^ graphTime;
 	
 	private: System::IO::StreamWriter^ logFile;
-	private: bool loggingEnabled;
+	private: bool dataSendingEnabled;
 
 	private: bool autoSetAxes;
 	private: String^ title;
@@ -288,12 +288,14 @@ namespace CHRInterface {
 	private: System::Windows::Forms::Label^  label5;
 	private: System::Windows::Forms::Timer^  timer1;
 private: System::Windows::Forms::TabPage^  tabPage4;
-private: System::Windows::Forms::TextBox^  logFileTextBox;
+
 
 private: System::Windows::Forms::SaveFileDialog^  saveFileDialog1;
-private: System::Windows::Forms::Button^  stopLoggingButton;
-private: System::Windows::Forms::Button^  startLoggingButton;
-private: System::Windows::Forms::Button^  logFileBrowseButton;
+private: System::Windows::Forms::Button^  stopSendingDataButton;
+
+private: System::Windows::Forms::Button^  startSendingDataButton;
+
+
 	protected: 
 	private: System::ComponentModel::IContainer^  components;
 
@@ -335,10 +337,8 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			this->textBox_yMax = (gcnew System::Windows::Forms::TextBox());
 			this->textBox_yMin = (gcnew System::Windows::Forms::TextBox());
 			this->tabPage4 = (gcnew System::Windows::Forms::TabPage());
-			this->stopLoggingButton = (gcnew System::Windows::Forms::Button());
-			this->startLoggingButton = (gcnew System::Windows::Forms::Button());
-			this->logFileBrowseButton = (gcnew System::Windows::Forms::Button());
-			this->logFileTextBox = (gcnew System::Windows::Forms::TextBox());
+			this->stopSendingDataButton = (gcnew System::Windows::Forms::Button());
+			this->startSendingDataButton = (gcnew System::Windows::Forms::Button());
 			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->saveFileDialog1 = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->tabControl->SuspendLayout();
@@ -583,10 +583,8 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			// 
 			// tabPage4
 			// 
-			this->tabPage4->Controls->Add(this->stopLoggingButton);
-			this->tabPage4->Controls->Add(this->startLoggingButton);
-			this->tabPage4->Controls->Add(this->logFileBrowseButton);
-			this->tabPage4->Controls->Add(this->logFileTextBox);
+			this->tabPage4->Controls->Add(this->stopSendingDataButton);
+			this->tabPage4->Controls->Add(this->startSendingDataButton);
 			this->tabPage4->Location = System::Drawing::Point(4, 22);
 			this->tabPage4->Name = L"tabPage4";
 			this->tabPage4->Padding = System::Windows::Forms::Padding(3);
@@ -595,46 +593,26 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			this->tabPage4->Text = L"Send Data";
 			this->tabPage4->UseVisualStyleBackColor = true;
 			// 
-			// stopLoggingButton
+			// stopSendingDataButton
 			// 
-			this->stopLoggingButton->Enabled = false;
-			this->stopLoggingButton->Location = System::Drawing::Point(162, 59);
-			this->stopLoggingButton->Name = L"stopLoggingButton";
-			this->stopLoggingButton->Size = System::Drawing::Size(88, 34);
-			this->stopLoggingButton->TabIndex = 3;
-			this->stopLoggingButton->Text = L"Stop Sending Data";
-			this->stopLoggingButton->UseVisualStyleBackColor = true;
-			this->stopLoggingButton->Click += gcnew System::EventHandler(this, &DataGraphDialog::stopLoggingButton_Click);
+			this->stopSendingDataButton->Enabled = false;
+			this->stopSendingDataButton->Location = System::Drawing::Point(142, 6);
+			this->stopSendingDataButton->Name = L"stopSendingDataButton";
+			this->stopSendingDataButton->Size = System::Drawing::Size(88, 34);
+			this->stopSendingDataButton->TabIndex = 3;
+			this->stopSendingDataButton->Text = L"Stop Sending Data";
+			this->stopSendingDataButton->UseVisualStyleBackColor = true;
+			this->stopSendingDataButton->Click += gcnew System::EventHandler(this, &DataGraphDialog::stopSendingDataButton_Click);
 			// 
-			// startLoggingButton
+			// startSendingDataButton
 			// 
-			this->startLoggingButton->Enabled = false;
-			this->startLoggingButton->Location = System::Drawing::Point(17, 59);
-			this->startLoggingButton->Name = L"startLoggingButton";
-			this->startLoggingButton->Size = System::Drawing::Size(84, 34);
-			this->startLoggingButton->TabIndex = 2;
-			this->startLoggingButton->Text = L"Start Sending Data";
-			this->startLoggingButton->UseVisualStyleBackColor = true;
-			this->startLoggingButton->Click += gcnew System::EventHandler(this, &DataGraphDialog::startLoggingButton_Click);
-			// 
-			// logFileBrowseButton
-			// 
-			this->logFileBrowseButton->Location = System::Drawing::Point(256, 17);
-			this->logFileBrowseButton->Name = L"logFileBrowseButton";
-			this->logFileBrowseButton->Size = System::Drawing::Size(75, 23);
-			this->logFileBrowseButton->TabIndex = 1;
-			this->logFileBrowseButton->Text = L"Browse";
-			this->logFileBrowseButton->UseVisualStyleBackColor = true;
-			this->logFileBrowseButton->Click += gcnew System::EventHandler(this, &DataGraphDialog::logFileBrowseButton_Click);
-			// 
-			// logFileTextBox
-			// 
-			this->logFileTextBox->Location = System::Drawing::Point(8, 19);
-			this->logFileTextBox->Name = L"logFileTextBox";
-			this->logFileTextBox->ReadOnly = true;
-			this->logFileTextBox->Size = System::Drawing::Size(242, 20);
-			this->logFileTextBox->TabIndex = 0;
-			this->logFileTextBox->Text = L"Click \"Browse\" to select a file";
+			this->startSendingDataButton->Location = System::Drawing::Point(8, 6);
+			this->startSendingDataButton->Name = L"startSendingDataButton";
+			this->startSendingDataButton->Size = System::Drawing::Size(84, 34);
+			this->startSendingDataButton->TabIndex = 2;
+			this->startSendingDataButton->Text = L"Start Sending Data";
+			this->startSendingDataButton->UseVisualStyleBackColor = true;
+			this->startSendingDataButton->Click += gcnew System::EventHandler(this, &DataGraphDialog::startSendingDataButton_Click);
 			// 
 			// timer1
 			// 
@@ -671,7 +649,6 @@ private: System::Windows::Forms::Button^  logFileBrowseButton;
 			this->groupBox2->ResumeLayout(false);
 			this->groupBox2->PerformLayout();
 			this->tabPage4->ResumeLayout(false);
-			this->tabPage4->PerformLayout();
 			this->ResumeLayout(false);
 
 		}
@@ -722,7 +699,7 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 			 time = this->graphTime->Elapsed;
 
 			 /*
-			 if( loggingEnabled )
+			 if( dataSendingEnabled )
 			 {
 				logFile->Write(time.ToString());
 				logFile->Write(L",");
@@ -764,7 +741,7 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 
 				 /*
 				 // If logging is enabled, write the data to file
-				 if( loggingEnabled )
+				 if( dataSendingEnabled )
 				 {
 					 logFile->Write(data.ToString());
 					 if( i < this->dataListCount - 1 )
@@ -774,7 +751,7 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 				 }
 				 */
 				 // <adeel>
-				 if( ( loggingEnabled ) &&
+				 if( ( dataSendingEnabled ) &&
 					 ( i < 2 ) )
 				 {
 					 float floatData = (float)(data);
@@ -789,7 +766,7 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 
 			 }
 			 /*
-			 if( loggingEnabled )
+			 if( dataSendingEnabled )
 			 {
 				logFile->Write(logFile->NewLine);				
 			 }
@@ -829,17 +806,7 @@ private: System::Void textBox_ylabel_TextChanged(System::Object^  sender, System
 		 {
 			 this->button_applyChanges->Enabled = true;
 		 }
-private: System::Void logFileBrowseButton_Click(System::Object^  sender, System::EventArgs^  e) {
-			 // Open save file dialog
-			 this->saveFileDialog1->ShowDialog();
-			 
-			 if( this->saveFileDialog1->FileName != "" )
-			 {
-				 this->logFileTextBox->Text = this->saveFileDialog1->FileName;
-				 this->startLoggingButton->Enabled = true;
-			 }
-		 }
-private: System::Void startLoggingButton_Click(System::Object^  sender, System::EventArgs^  e) 
+private: System::Void startSendingDataButton_Click(System::Object^  sender, System::EventArgs^  e) 
 		 {
 			 /*
 			 if( this->logFile != nullptr )
@@ -872,28 +839,28 @@ private: System::Void startLoggingButton_Click(System::Object^  sender, System::
 			 logFile->Write(logFile->NewLine);
 			 */
 			 
-			 this->loggingEnabled = true;
-			 this->startLoggingButton->Enabled = false;
-			 this->stopLoggingButton->Enabled = true;
-			 this->logFileBrowseButton->Enabled = false;
-		 }
-private: System::Void stopLoggingButton_Click(System::Object^  sender, System::EventArgs^  e) 
+			 this->dataSendingEnabled = true;
+			 this->startSendingDataButton->Enabled = false;
+			 this->stopSendingDataButton->Enabled = true;
+		}
+private: System::Void stopSendingDataButton_Click(System::Object^  sender, System::EventArgs^  e) 
 		 {
 			 /*
 			 this->logFile->Close();
 			 */
 
-			 this->loggingEnabled = false;
-			 this->startLoggingButton->Enabled = true;
-			 this->stopLoggingButton->Enabled = false;
-			 this->logFileBrowseButton->Enabled = true;
+			 this->dataSendingEnabled = false;
+			 this->startSendingDataButton->Enabled = true;
+			 this->stopSendingDataButton->Enabled = false;
 		 }
 private: System::Void DataGraphDialog_FormClosing_1(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e) {
+			 /*
 			 if( this->logFile != nullptr )
 			 {
 				 logFile->Close();
-				 loggingEnabled = false;
+				 dataSendingEnabled = false;
 			 }
+			 */
 		 }
 };
 }
