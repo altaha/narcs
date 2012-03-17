@@ -43,6 +43,9 @@
     <ClInclude Include="SynchObjs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="KinectData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

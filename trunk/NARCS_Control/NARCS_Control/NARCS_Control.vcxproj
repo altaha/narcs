@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClInclude Include="defines.h" />
     <ClInclude Include="IMU.h" />
+    <ClInclude Include="KinectData.h" />
     <ClInclude Include="NARCS.h" />
     <ClInclude Include="SharedMem.h" />
     <ClInclude Include="stdafx.h" />

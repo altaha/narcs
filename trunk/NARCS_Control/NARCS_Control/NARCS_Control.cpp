@@ -8,13 +8,16 @@
 #include "SharedMem.h"
 #include "SynchObjs.h"
 //#include "IMU.h"
-#include <iostream>
+// <adeel>
+#include "KinectData.h"
+// </adeel>
 
 
 //#define ADEEL_DEBUG
 
 
 #ifdef ADEEL_DEBUG
+#include <iostream>
 #include <fstream>
 #endif
 
@@ -47,9 +50,14 @@ typedef struct IMUData
 */
 int _tmain(int argc, _TCHAR* argv[])
 {
-	SharedMem IMUSharedMemory = SharedMem(TEXT("IMUSharedMemory"), false);
-	MutexObj IMUSharedMemoryMutex = MutexObj();
+	SharedMem IMUSharedMemory (TEXT("IMUSharedMemory"), false);
+	MutexObj IMUSharedMemoryMutex;
 	IMUData imuData;
+
+	SharedMem kinectSharedMemory (TEXT("kinectSharedMemory"), false);
+	MutexObj kinectSharedMemoryMutex;
+	KinectData kinectData;
+
 
 #ifdef ADEEL_DEBUG
 	fstream debugOut("IMUDebug.txt", ios::out);
@@ -67,25 +75,40 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		Sleep(500);
 	}
-	
 
-	// <debug>
+	while(!kinectSharedMemory.isValid())
+	{
+		if(!kinectSharedMemory.Start(0))
+		{
+			Sleep(500);
+		}
+	}
+		
+	while(!kinectSharedMemoryMutex.isValid() && !kinectSharedMemoryMutex.initNamedMutex(TEXT("kinectSharedMemoryMutex"), false))
+	{
+		Sleep(500);
+	}
+
+#ifdef ADEEL_DEBUG
 	for(int i = 0; i < 500; i++)
 	{
-		if ( lockMutex(IMUSharedMemoryMutex, INFINITE) ){
-			IMUSharedMemory.readBytes((void *)(&imuData), sizeof(imuData), 0);
-			unlockMutex(IMUSharedMemoryMutex);
-			//cout << "Pitch = " << imuData.pitch << ", Roll = " << imuData.roll << endl;
-#ifdef ADEEL_DEBUG
-			debugOut << "Pitch = " << imuData.pitch << ", Roll = " << imuData.roll << endl;
+		if ( lockMutex(kinectSharedMemoryMutex, INFINITE) ){
+			kinectSharedMemory.readBytes((void *)(&kinectData), sizeof(kinectData), 0);
+			unlockMutex(kinectSharedMemoryMutex);
+			cout << "x = " << kinectData.rightHandX
+			     << ", y = " << kinectData.rightHandY
+				 << ", z = " << kinectData.rightHandZ << endl;
+
+			/*
+			debugOut << "x = " << kinectData.rightHandX
+					 << ", y = " << kinectData.rightHandY
+					 << ", z = " << kinectData.rightHandZ << endl;
 			debugOut.flush();
-#endif
+			*/
 		}
 		Sleep(50);
 	}
-	// </debug>
 
-#ifdef ADEEL_DEBUG
 	debugOut.close();
 #endif
 
