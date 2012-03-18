@@ -1,5 +1,9 @@
-﻿Build started 17/03/2012 5:09:43 PM.
+﻿Build started 17/03/2012 9:56:23 PM.
+     1>Project "C:\Work\University\Fourth Year Design Project\Code Workspace\SkeletalViewer\SkeletalViewer.vcxproj" on node 2 (clean target(s)).
+     1>_PrepareForClean:
+         Deleting file "Debug\SkeletalViewer.lastbuildstate".
+     1>Done Building Project "C:\Work\University\Fourth Year Design Project\Code Workspace\SkeletalViewer\SkeletalViewer.vcxproj" (clean target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.01
+Time Elapsed 00:00:00.02
