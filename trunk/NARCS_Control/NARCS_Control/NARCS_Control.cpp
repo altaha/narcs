@@ -2,14 +2,29 @@
 //
 
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include "stdafx.h"
+// <adeel>
+// </adeel>
 //#include "NARCS.h"
 //#include "ThreadObj.h"
 #include "SharedMem.h"
 #include "SynchObjs.h"
 //#include "IMU.h"
 // <adeel>
-#include "KinectData.h"
+#include "DataTransferStructs.h"
+#include <iostream>
+
+
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1  192
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2  168
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3  1
+#define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4  1
+#define KINECT_AND_IMU_SOCKET_PORT  62009
+
+
+#pragma comment(lib, "Ws2_32.lib")
 // </adeel>
 
 
@@ -22,7 +37,6 @@
 #endif
 
 
-
 //#define BUFF_SIZE 1024
 
 
@@ -30,13 +44,6 @@ thrdCommBlock globCommBlocks[NUM_THREADS];
 
 
 using namespace std;
-
-
-typedef struct IMUData
-{
-	float pitch;
-	float roll;
-} IMUData;
 
 
 /* 
@@ -50,31 +57,12 @@ typedef struct IMUData
 */
 int _tmain(int argc, _TCHAR* argv[])
 {
-	SharedMem IMUSharedMemory (TEXT("IMUSharedMemory"), false);
-	MutexObj IMUSharedMemoryMutex;
-	IMUData imuData;
-
 	SharedMem kinectSharedMemory (TEXT("kinectSharedMemory"), false);
 	MutexObj kinectSharedMemoryMutex;
-	KinectData kinectData;
+	SharedMem IMUSharedMemory (TEXT("IMUSharedMemory"), false);
+	MutexObj IMUSharedMemoryMutex;
+	KinectAndIMUData kinectAndIMUData;
 
-
-#ifdef ADEEL_DEBUG
-	fstream debugOut("IMUDebug.txt", ios::out);
-#endif
-
-	while(!IMUSharedMemory.isValid())
-	{
-		if(!IMUSharedMemory.Start(0))
-		{
-			Sleep(500);
-		}
-	}
-		
-	while(!IMUSharedMemoryMutex.isValid() && !IMUSharedMemoryMutex.initNamedMutex(TEXT("IMUSharedMemoryMutex"), false))
-	{
-		Sleep(500);
-	}
 
 	while(!kinectSharedMemory.isValid())
 	{
@@ -89,20 +77,156 @@ int _tmain(int argc, _TCHAR* argv[])
 		Sleep(500);
 	}
 
+	while(!IMUSharedMemory.isValid())
+	{
+		if(!IMUSharedMemory.Start(0))
+		{
+			Sleep(500);
+		}
+	}
+		
+	while(!IMUSharedMemoryMutex.isValid() && !IMUSharedMemoryMutex.initNamedMutex(TEXT("IMUSharedMemoryMutex"), false))
+	{
+		Sleep(500);
+	}
+	
+
+
+	int retCode = 0;
+	WSADATA wsaData;
+	SOCKET kinectAndIMUSocket = INVALID_SOCKET;
+
+
+	// Initialize Winsock
+	retCode = WSAStartup(MAKEWORD(2,2), &wsaData);
+	if (retCode != 0)
+	{
+		cout << "_tmain(...) - WSAStartup(...) failed." << endl;
+		goto FAILURE;
+	}
+	
+	kinectAndIMUSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (kinectAndIMUSocket == INVALID_SOCKET)
+	{
+		cout << "_tmain(...) - socket(...) failed." << endl;
+		goto FAILURE;
+	}
+
+
+	struct sockaddr_in remoteSideComputerAddress;
+	
+	ZeroMemory(&remoteSideComputerAddress, sizeof(remoteSideComputerAddress));
+	remoteSideComputerAddress.sin_family = AF_INET;
+	remoteSideComputerAddress.sin_port = htons(KINECT_AND_IMU_SOCKET_PORT);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b1 =
+												(unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b2 =
+												(unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b3 =
+												(unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3);
+	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b4 =
+												(unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4);
+
+	retCode = connect(kinectAndIMUSocket,
+					  (const struct sockaddr *)(&remoteSideComputerAddress),
+					  sizeof(remoteSideComputerAddress));
+	if (retCode == SOCKET_ERROR)
+	{
+		cout << "_tmain(...) - connect(...) failed." << endl;
+		goto FAILURE;
+	}
+
+	// make the socket non-blocking
+	u_long socketMode = 1;
+	ioctlsocket(kinectAndIMUSocket, FIONBIO, &socketMode);
+
+
+#ifdef ADEEL_DEBUG
+	fstream debugOut("IMUDebug.txt", ios::out);
+#endif
+	
+	char recvBuffer[1];
+	char *currBuffPtr = NULL;
+	unsigned int totalBytesWritten = 0;
+	int currBytesWritten = -1;
+	while(true)
+	{
+		// wait for an update request from the remote side
+		while(true)
+		{
+			recv(kinectAndIMUSocket, recvBuffer, 1, 0);
+
+			retCode = WSAGetLastError();
+			if( retCode == 0 )
+			{
+				break;
+			}
+			else if( retCode != WSAEWOULDBLOCK )
+			{
+				cout << "_tmain(...) - recv(...) failed." << endl;
+				goto FAILURE;
+			}
+		}
+
+		// get latest Kinect data
+		lockMutex(kinectSharedMemoryMutex, INFINITE);
+		kinectSharedMemory.readBytes((void *)(&kinectAndIMUData.kinectData),
+									 sizeof(kinectAndIMUData.kinectData),
+									 0);
+		unlockMutex(kinectSharedMemoryMutex);
+		
+		// get latest IMU data
+		lockMutex(IMUSharedMemoryMutex, INFINITE);
+		IMUSharedMemory.readBytes((void *)(&kinectAndIMUData.imuData),
+								  sizeof(kinectAndIMUData.imuData),
+								  0);
+		unlockMutex(IMUSharedMemoryMutex);
+		
+		// send the kinect and IMU update
+		currBuffPtr = (char *)(&kinectAndIMUData);
+		totalBytesWritten = 0;
+		currBytesWritten = -1;
+		while(totalBytesWritten < sizeof(kinectAndIMUData))
+		{
+			currBytesWritten = send(kinectAndIMUSocket,
+									currBuffPtr,
+									sizeof(kinectAndIMUData) - totalBytesWritten,
+									0);
+			if (currBytesWritten == SOCKET_ERROR)
+			{
+				cout << "_tmain(...) - send(...) failed." << endl;
+				goto FAILURE;
+			}
+
+			totalBytesWritten += currBytesWritten;
+			currBuffPtr += currBytesWritten;
+		}
+		/*
+		if(cin.peek() != EOF)
+		{
+			break;
+		}
+		*/
+	}
+
+
+
+
+
 #ifdef ADEEL_DEBUG
 	for(int i = 0; i < 500; i++)
 	{
 		if ( lockMutex(kinectSharedMemoryMutex, INFINITE) ){
-			kinectSharedMemory.readBytes((void *)(&kinectData), sizeof(kinectData), 0);
+			kinectSharedMemory.readBytes((void *)(&kinectAndIMUData.kinectData), sizeof(kinectAndIMUData.kinectData), 0);
 			unlockMutex(kinectSharedMemoryMutex);
-			cout << "x = " << kinectData.rightHandX
-			     << ", y = " << kinectData.rightHandY
-				 << ", z = " << kinectData.rightHandZ << endl;
+			cout << "x = " << kinectAndIMUData.kinectData.rightHandX
+			     << ", y = " << kinectAndIMUData.kinectData.rightHandY
+				 << ", z = " << kinectAndIMUData.kinectData.rightHandZ << endl;
 
 			/*
-			debugOut << "x = " << kinectData.rightHandX
-					 << ", y = " << kinectData.rightHandY
-					 << ", z = " << kinectData.rightHandZ << endl;
+			debugOut << "x = " << kinectAndIMUData.kinectData.rightHandX
+					 << ", y = " << kinectAndIMUData.kinectData.rightHandY
+					 << ", z = " << kinectAndIMUData.kinectData.rightHandZ << endl;
 			debugOut.flush();
 			*/
 		}
@@ -112,7 +236,22 @@ int _tmain(int argc, _TCHAR* argv[])
 	debugOut.close();
 #endif
 
-	return 0;
+
+	retCode = 0;
+	goto SUCCESS;
+
+FAILURE:
+	retCode = -1;
+
+SUCCESS:
+	if(kinectAndIMUSocket != INVALID_SOCKET)
+	{
+		closesocket(kinectAndIMUSocket);
+	}
+	WSACleanup();
+
+	cin.get();
+	return retCode;
 
 
 

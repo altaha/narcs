@@ -43,7 +43,7 @@
     <ClInclude Include="SynchObjs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectData.h">
+    <ClInclude Include="DataTransferStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
