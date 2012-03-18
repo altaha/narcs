@@ -20,7 +20,7 @@ typedef enum Thread_type {
 static bool threadRequired[NUM_THREADS] =	//set which threads (modules) will be used
 {
 	false,	//KINECT_AND_IMU_THREAD
-	false,	//ARDUINO_THREAD
+	true,	//ARDUINO_THREAD
 	false,	//ROBO_ARM_THREAD
 };
 

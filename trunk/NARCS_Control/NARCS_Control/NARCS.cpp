@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "NARCS.h"
+#include "Arduino.h"
 
 NARCS::NARCS(void) : _nActiveThreads(0)
 {
@@ -29,6 +30,8 @@ void NARCS::allocate_threads(void)
 					_threads[i] = new IMU ( (Thread_type) i);
 					break;
 				case ARDUINO_THREAD:
+					_threads[i] = new Arduino ( (Thread_type) i);
+					break;
 				case ROBO_ARM_THREAD:
 				default:
 					break;

@@ -76,6 +76,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Arduino.h" />
     <ClInclude Include="DataTransferStructs.h" />
     <ClInclude Include="defines.h" />
     <ClInclude Include="IMU.h" />
@@ -87,6 +88,7 @@
     <ClInclude Include="ThreadObj.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Arduino.cpp" />
     <ClCompile Include="IMU.cpp" />
     <ClCompile Include="NARCS.cpp" />
     <ClCompile Include="NARCS_Control.cpp" />
