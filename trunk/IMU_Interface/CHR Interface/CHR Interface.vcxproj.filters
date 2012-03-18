@@ -72,6 +72,9 @@
     <ClCompile Include="UnmanagedClassHandling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DoubleMovingAvergae.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataGraphDialog.h">
@@ -129,6 +132,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UnmanagedClassHandling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DoubleMovingAverage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

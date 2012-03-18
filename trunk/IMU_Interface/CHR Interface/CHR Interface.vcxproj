@@ -131,6 +131,9 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="CHR Interface.cpp" />
     <ClCompile Include="DataGraphDialog.cpp" />
+    <ClCompile Include="DoubleMovingAvergae.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="FirmwareCommand.cpp" />
     <ClCompile Include="FirmwareDefinition.cpp" />
     <ClCompile Include="FirmwareItem.cpp" />
@@ -165,6 +168,7 @@
     <ClInclude Include="DataGraphDialog.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="DoubleMovingAverage.h" />
     <ClInclude Include="FirmwareCommand.h" />
     <ClInclude Include="FirmwareDefinition.h" />
     <ClInclude Include="FirmwareItem.h" />

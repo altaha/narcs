@@ -1,4 +1,4 @@
-﻿Build started 17/03/2012 3:24:53 PM.
+﻿Build started 18/03/2012 1:06:36 AM.
      1>Project "C:\Work\University\Fourth Year Design Project\Code Workspace\IMU_Interface\CHR Interface\CHR Interface.vcxproj" on node 2 (clean target(s)).
      1>_PrepareForClean:
          Deleting file "Debug\CHR Interface.lastbuildstate".
@@ -6,4 +6,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.11
+Time Elapsed 00:00:00.21
