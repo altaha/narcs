@@ -23,7 +23,7 @@ int Arduino::threadMain(void)
 	char *sendBuffer = NULL;
 	char *recvBuffer = NULL;
 	int errCode;
-	int ForceValue=20;
+	int ForceValue=0;
 
 	HANDLE hSerial;
 	std::string a="COM25";

@@ -61,7 +61,8 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	SOCKET kinectAndIMUSocket = INVALID_SOCKET;
 	NARCS* global = NULL;
-	/*
+
+
 	SharedMem kinectSharedMemory (TEXT("kinectSharedMemory"), false);
 	MutexObj kinectSharedMemoryMutex;
 	SharedMem IMUSharedMemory (TEXT("IMUSharedMemory"), false);
@@ -94,7 +95,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		Sleep(500);
 	}
-	*/
 
 
 	int retCode = 0;
@@ -208,7 +208,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #ifdef ADEEL_DEBUG
 	fstream debugOut("IMUDebug.txt", ios::out);
 #endif
-#ifdef TEMP
+
 	char recvBuffer[1];
 	char *currBuffPtr = NULL;
 	unsigned int totalBytesWritten = 0;
@@ -303,7 +303,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	debugOut.close();
 #endif
 
-#endif
+
 	retCode = 0;
 	goto SUCCESS;
 
