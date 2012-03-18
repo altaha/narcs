@@ -5,6 +5,7 @@
 #include <iostream>
 #include <MMSystem.h>
 #include <math.h>
+#include "DataTransferStructs.h"
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -14,7 +15,6 @@
 
 #define DEFAULT_PORT  "62009"
 #define ARM_SPEED  100
-#define POSITION_UPDATE_BUFFER_LENGTH  12
 #define POSITION_UPDATE_WAIT_INTERVAL_MS  400
 #define POSITION_SCALNG_FACTOR  0.75
 //#define MAX_ARM_REACH_MM  650
@@ -86,13 +86,13 @@ int main() {
 		Robot->ControlRelease();
 		exit(1);
 	}
-	
+
 
     int iResult, iSendResult;
 
 	WSADATA wsaData;	//to inialize Windows socket dll
 	struct addrinfo *result=NULL, *ptr=NULL, hints;
-	SOCKET ListenSocket = INVALID_SOCKET, ClientSocket = INVALID_SOCKET;
+	SOCKET ListenSocket = INVALID_SOCKET, kinectAndIMUSocket = INVALID_SOCKET;
 
 
 	//Initialize Winscok
@@ -158,8 +158,8 @@ int main() {
 	
 	printf("All good. Waiting for request\n");
 	//Accept a client socket
-	ClientSocket = accept(ListenSocket, NULL, NULL);
-	if (ClientSocket == INVALID_SOCKET) {
+	kinectAndIMUSocket = accept(ListenSocket, NULL, NULL);
+	if (kinectAndIMUSocket == INVALID_SOCKET) {
 		printf("accept failed: %d\n", WSAGetLastError());
 		closesocket(ListenSocket);
 		WSACleanup();
@@ -171,11 +171,11 @@ int main() {
 	printf("Accept succeeded\n\n");
 	
 
-	
-	char position_update_buffer[POSITION_UPDATE_BUFFER_LENGTH];
+	KinectAndIMUData kinectAndIMUData;
+	char sendBuffer[1];
 	int curr_bytes_read = -1;
 	unsigned int total_bytes_read = 0;
-	char *curr_buffer_ptr = position_update_buffer;
+	char *curr_buffer_ptr = sendBuffer;
 	float endEffectorX,
 		  endEffectorY,
 		  endEffectorZ,
@@ -183,10 +183,7 @@ int main() {
 		  endEffectorZMin = 0;
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
-	double currArmReach = 0;
-	// <debug>
-	endEffectorPosition->Putyrot(110);
-	// </debug>
+	//double currArmReach = 0;
 	
 #ifdef ADEEL_DEBUG
 	//int moveStartTime;
@@ -195,19 +192,19 @@ int main() {
 	while(true)
 	{
 		// Send the message
-		curr_buffer_ptr = position_update_buffer;
+		curr_buffer_ptr = sendBuffer;
 		totalBytesWritten = 0;
 		currBytesWritten = -1;
 		while(totalBytesWritten < 1)
 		{
-			currBytesWritten = send(ClientSocket,
+			currBytesWritten = send(kinectAndIMUSocket,
 									curr_buffer_ptr,
 									1 - totalBytesWritten,
 									0);
 			if (currBytesWritten == 0)
 			{
 				printf("Connection closing...\n");
-				closesocket(ClientSocket);
+				closesocket(kinectAndIMUSocket);
 				WSACleanup();
 				Robot->ControlRelease();
 				cin.get();
@@ -219,7 +216,7 @@ int main() {
 			else if (currBytesWritten < 0)
 			{
 				printf("send failed: %d\n", WSAGetLastError());
-				closesocket(ClientSocket);
+				closesocket(kinectAndIMUSocket);
 				WSACleanup();
 				Robot->ControlRelease();
 				cin.get();
@@ -237,17 +234,17 @@ int main() {
 		// Receive position update
 		curr_bytes_read = -1;
 		total_bytes_read = 0;
-		curr_buffer_ptr = position_update_buffer;
-		while(total_bytes_read < POSITION_UPDATE_BUFFER_LENGTH)
+		curr_buffer_ptr = (char *)(&kinectAndIMUData);
+		while(total_bytes_read < sizeof(kinectAndIMUData))
 		{
-			curr_bytes_read = recv(ClientSocket,
+			curr_bytes_read = recv(kinectAndIMUSocket,
 								   curr_buffer_ptr,
-								   POSITION_UPDATE_BUFFER_LENGTH - total_bytes_read,
+								   sizeof(kinectAndIMUData) - total_bytes_read,
 								   0);
 			if (curr_bytes_read == 0)
 			{
 				printf("Connection closing...\n");
-				closesocket(ClientSocket);
+				closesocket(kinectAndIMUSocket);
 				WSACleanup();
 				Robot->ControlRelease();
 				cin.get();
@@ -259,7 +256,7 @@ int main() {
 			else if (curr_bytes_read < 0)
 			{
 				printf("recv failed: %d\n", WSAGetLastError());
-				closesocket(ClientSocket);
+				closesocket(kinectAndIMUSocket);
 				WSACleanup();
 				Robot->ControlRelease();
 				cin.get();
@@ -273,6 +270,7 @@ int main() {
 			curr_buffer_ptr += curr_bytes_read;
 		}
 
+		/*
 		memcpy_s( (void *)(&endEffectorX),
 				  sizeof(endEffectorX),
 			      (const void *)(position_update_buffer + 8),
@@ -285,15 +283,17 @@ int main() {
 				  sizeof(endEffectorZ),
 				  (const void *)(position_update_buffer + 4),
 				  4);
+		*/
 
-		endEffectorX *= POSITION_SCALNG_FACTOR;
-		endEffectorY *= POSITION_SCALNG_FACTOR;
-		endEffectorZ *= POSITION_SCALNG_FACTOR;
-
-		endEffectorX += readyPositionX;
-		endEffectorY = endEffectorY * (-1);
-		endEffectorY += readyPositionY;
-		endEffectorZ += readyPositionZ;
+		endEffectorX = kinectAndIMUData.kinectData.rightHandZ * 
+					   POSITION_SCALNG_FACTOR +
+					   readyPositionX;
+		endEffectorY = -1 * kinectAndIMUData.kinectData.rightHandX *
+					   POSITION_SCALNG_FACTOR +
+					   readyPositionY;
+		endEffectorZ = kinectAndIMUData.kinectData.rightHandY *
+					   POSITION_SCALNG_FACTOR +
+					   readyPositionZ;
 
 		endEffectorYrot = endEffectorPosition->Getyrot(); 
 
@@ -304,6 +304,7 @@ int main() {
 				 << endl;
 				 */
 #endif
+
 		if( endEffectorYrot > 0 )
 		{
 			endEffectorZMin = 
@@ -383,7 +384,7 @@ int main() {
 #ifdef ADEEL_DEBUG
 					//debugOut << "Trying to move to an invalid location:"
 					//			<< endl
-					//debugOut << endEffectorX << ", "
+					//debugOut << endEffectorX<< ", "
 					//		 << endEffectorY << ", "
 					//		 << endEffectorZ << endl;
 					//debugOut.flush();
@@ -402,7 +403,7 @@ int main() {
 				char WorkString[255];
 				sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
 				AfxMessageBox(WorkString);
-				closesocket(ClientSocket);
+				closesocket(kinectAndIMUSocket);
 				WSACleanup();
 				Robot->ControlRelease();
 				cin.get();
@@ -418,7 +419,7 @@ int main() {
 #ifdef ADEEL_DEBUG
 			debugOut << "Ground collision detected:"
 					 << endl
-					 << endEffectorX << ", "
+					 << endEffectorX<< ", "
 					 << endEffectorY << ", "
 					 << endEffectorZ << endl << endl;
 			debugOut.flush();
@@ -426,7 +427,6 @@ int main() {
 		}
 
 		
-
 		/*
 		currArmReach = sqrt( pow( (double)(endEffectorX), 2 ) +
 			 				 pow( (double)(endEffectorY), 2 ) +
@@ -455,7 +455,7 @@ int main() {
 #ifdef ADEEL_DEBUG
 					debugOut << "Trying to move to an invalid location:"
 							 << endl
-							 << endEffectorX << ", "
+							 << endEffectorX<< ", "
 							 << endEffectorY << ", "
 							 << endEffectorZ << endl;
 					debugOut.flush();
@@ -474,7 +474,7 @@ int main() {
 				char WorkString[255];
 				sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
 				AfxMessageBox(WorkString);
-				closesocket(ClientSocket);
+				closesocket(kinectAndIMUSocket);
 				WSACleanup();
 				Robot->ControlRelease();
 				cin.get();
@@ -490,7 +490,7 @@ int main() {
 #ifdef ADEEL_DEBUG
 			debugOut << "Max arm reach exceeded:"
 					 << endl
-					 << endEffectorX << ", "
+					 << endEffectorX<< ", "
 					 << endEffectorY << ", "
 					 << endEffectorZ << endl;
 			debugOut.flush();
@@ -500,6 +500,6 @@ int main() {
 		//Sleep(POSITION_UPDATE_WAIT_INTERVAL_MS);
 	} // while(true)
 
-	
+	cin.get();
 	return 0;
 }
