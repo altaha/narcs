@@ -10,9 +10,7 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
-#ifdef TEMP
 #import "C:\Program Files\CRS Robotics\ActiveRobot\ActiveRobot.dll"
-#endif
 
 #define DEFAULT_PORT  "62009"
 #define ARM_SPEED  100
@@ -30,16 +28,13 @@
 #include <fstream>
 #endif
 
-#ifdef TEMP
 using namespace ACTIVEROBOTLib;
-#endif
 using namespace std;
 
 
 int main() {
 	int retCode = 0;
 
-	#ifdef TEMP
 	if FAILED(CoInitialize(NULL))
 	{
 		AfxMessageBox("CoInitialize() failed.");
@@ -91,7 +86,7 @@ int main() {
 		Robot->ControlRelease();
 		exit(1);
 	}
-	#endif
+
 
     int iResult, iSendResult;
 	WSADATA wsaData;	//to inialize Windows socket dll
@@ -131,17 +126,7 @@ int main() {
 		goto FAILURE;
 	}
 	
-/*
-	int setsockopt_optval = -1;
-	if(setsockopt(kinectAndIMUListenSocket,
-				  SOL_SOCKET,
-				  SO_REUSEADDR,
-				  (const char *)(&setsockopt_optval),
-				  sizeof(setsockopt_optval)) != 0)
-	{
-		goto FAILURE;
-	}
-	*/
+
 	//Setup the TCP listening socket
 	iResult = bind(listenSocket, result->ai_addr, (int)result->ai_addrlen);
 	if (iResult == SOCKET_ERROR) {
@@ -168,23 +153,8 @@ int main() {
 
 	freeaddrinfo(result);
 	result = NULL;
+		
 
-	// <debug>
-	/*
-	char recvBuff[1];
-	int curr_bytes_read = recv(arduinoSocket,
-							   recvBuff,
-							   1,
-							   0);
-	if (curr_bytes_read != 1)
-	{
-		goto FAILURE;
-	}
-	cout << recvBuff[0] << endl;
-	*/
-	// </debug>
-
-	
 	FD_ZERO(&master_socket_descriptor_set);
 	FD_SET(kinectAndIMUSocket, &master_socket_descriptor_set);
 	FD_SET(arduinoSocket, &master_socket_descriptor_set);
@@ -198,13 +168,66 @@ int main() {
 		maxSocket = arduinoSocket;
 	}
 
+	KinectAndIMUData kinectAndIMUData;
+	char sendBuffer[1];
+	int curr_bytes_read = -1;
+	unsigned int total_bytes_read = 0;
+	char *curr_buffer_ptr = sendBuffer;
+	float endEffectorX,
+		  endEffectorY,
+		  endEffectorZ,
+		  endEffectorYrot,
+		  endEffectorZMin = 0;
+	unsigned int totalBytesWritten = 0;
+	int currBytesWritten = -1;
+
+
+	// Send first Kinect and IMU update request
+	curr_buffer_ptr = sendBuffer;
+	totalBytesWritten = 0;
+	currBytesWritten = -1;
+	while(totalBytesWritten < 1)
+	{
+		currBytesWritten = send(kinectAndIMUSocket,
+								curr_buffer_ptr,
+								1 - totalBytesWritten,
+								0);
+		if (currBytesWritten == 0)
+		{
+			printf("Connection closing...\n");
+			closesocket(kinectAndIMUSocket);
+			WSACleanup();
+			Robot->ControlRelease();
+			cin.get();
+#ifdef ADEEL_DEBUG
+			debugOut.close();
+#endif
+			return 0;
+		}
+		else if (currBytesWritten < 0)
+		{
+			printf("send failed: %d\n", WSAGetLastError());
+			closesocket(kinectAndIMUSocket);
+			WSACleanup();
+			Robot->ControlRelease();
+			cin.get();
+#ifdef ADEEL_DEBUG
+			debugOut.close();
+#endif
+			return -1;
+		}
+
+		totalBytesWritten += currBytesWritten;
+		curr_buffer_ptr += currBytesWritten;
+	}
+
+
+
 	while(true)
 	{
 		request_socket_descriptor_set = master_socket_descriptor_set;
 	
-		// <debug>
-		printf("Waiting for select\n");
-		// </debug>
+		
 		if(select(maxSocket + 1,
 				  &request_socket_descriptor_set,
 				  NULL,
@@ -214,24 +237,244 @@ int main() {
 			printf("select() error");
 			goto FAILURE;
 		}
-		// <debug>
-		printf("select finished\n");
-		// </debug>
+	
 
 		if(FD_ISSET(kinectAndIMUSocket,
 					&request_socket_descriptor_set))
 		{
-			printf("Got data from kinectAndIMUSocket.\n");
-			char recvBuff[1];
-			int curr_bytes_read = recv(kinectAndIMUSocket,
-									   recvBuff,
-									   1,
-									   0);
-			if (curr_bytes_read != 1)
+			// Receive Kinect and IMU update
+			curr_bytes_read = -1;
+			total_bytes_read = 0;
+			curr_buffer_ptr = (char *)(&kinectAndIMUData);
+			while(total_bytes_read < sizeof(kinectAndIMUData))
 			{
-				goto FAILURE;
+				curr_bytes_read = recv(kinectAndIMUSocket,
+										curr_buffer_ptr,
+										sizeof(kinectAndIMUData) - total_bytes_read,
+										0);
+				if (curr_bytes_read == 0)
+				{
+					printf("Connection closing...\n");
+					closesocket(kinectAndIMUSocket);
+					WSACleanup();
+					Robot->ControlRelease();
+					cin.get();
+	#ifdef ADEEL_DEBUG
+					debugOut.close();
+	#endif
+					return 0;
+				}
+				else if (curr_bytes_read < 0)
+				{
+					printf("recv failed: %d\n", WSAGetLastError());
+					closesocket(kinectAndIMUSocket);
+					WSACleanup();
+					Robot->ControlRelease();
+					cin.get();
+	#ifdef ADEEL_DEBUG
+					debugOut.close();
+	#endif
+					return -1;
+				}
+
+				total_bytes_read += curr_bytes_read;
+				curr_buffer_ptr += curr_bytes_read;
 			}
-			cout << recvBuff[0] << endl;
+
+			/*
+			memcpy_s( (void *)(&endEffectorX),
+						sizeof(endEffectorX),
+						(const void *)(position_update_buffer + 8),
+						4);
+			memcpy_s( (void *)(&endEffectorY),
+						sizeof(endEffectorY),
+						(const void *)(position_update_buffer),
+						4);
+			memcpy_s( (void *)(&endEffectorZ),
+						sizeof(endEffectorZ),
+						(const void *)(position_update_buffer + 4),
+						4);
+			*/
+
+			endEffectorX = kinectAndIMUData.kinectData.rightHandZ * 
+							POSITION_SCALNG_FACTOR +
+							readyPositionX;
+			endEffectorY = -1 * kinectAndIMUData.kinectData.rightHandX *
+							POSITION_SCALNG_FACTOR +
+							readyPositionY;
+			endEffectorZ = kinectAndIMUData.kinectData.rightHandY *
+							POSITION_SCALNG_FACTOR +
+							readyPositionZ;
+
+			endEffectorYrot = endEffectorPosition->Getyrot(); 
+
+	#ifdef ADEEL_DEBUG
+			/*
+			debugOut << "endEffectorYrot = "
+						<< endEffectorYrot
+						<< endl;
+						*/
+	#endif
+
+			if( endEffectorYrot > 0 )
+			{
+				endEffectorZMin = 
+					endEffectorZ -
+					( float )( END_EFFECTOR_LENGTH_MM ) *
+					sin( endEffectorYrot *
+							( ( float )( PI ) ) /
+							( ( float )( 180 ) ) );
+	#ifdef ADEEL_DEBUG
+				debugOut << "endEffectorYrot = " << endEffectorYrot << endl
+							<< "sin(endEffectorYrot) = " 
+							<<	 sin( endEffectorYrot *
+									( ( float )( PI ) ) /
+									( ( float )( 180 ) ) ) << endl
+							<< "sinOpMult = "
+							<< ( float )( END_EFFECTOR_LENGTH_MM ) *
+							sin( endEffectorYrot *
+									( ( float )( PI ) ) /
+									( ( float )( 180 ) ) ) << endl;
+				debugOut.flush();
+	#endif
+
+			}
+			else if( endEffectorYrot < 0 )
+			{
+				endEffectorZMin = 
+					endEffectorZ -
+					( float )( END_EFFECTOR_SUPPORT_LINK_LENGTH_MM ) *
+					sin( ( float )( -1 ) * endEffectorYrot *
+							( ( float )( PI ) ) /
+							( ( float )( 180 ) ) );
+	#ifdef ADEEL_DEBUG
+				debugOut << "endEffectorYrot = " << endEffectorYrot << endl
+							<< "sin(endEffectorYrot) = " 
+							<<	 sin( endEffectorYrot *
+									( ( float )( PI ) ) /
+									( ( float )( 180 ) ) ) << endl
+							<< "sinOpMult = "
+							<< ( float )( END_EFFECTOR_LENGTH_MM ) *
+							sin( endEffectorYrot *
+									( ( float )( PI ) ) /
+									( ( float )( 180 ) ) ) << endl;
+				debugOut.flush();
+	#endif
+			}
+			else
+			{
+				endEffectorZMin = endEffectorZ;
+			}
+
+	#ifdef ADEEL_DEBUG
+			debugOut << "endEffectorZ = " << endEffectorZ << endl
+						<< "endEffectorZMin = " << endEffectorZMin << endl;
+			debugOut.flush();
+	#endif
+
+			if( endEffectorZMin >= (float)(Z_MIN_MM) )
+			{
+				try
+				{
+					endEffectorPosition->Putx(endEffectorX);
+					endEffectorPosition->Puty(endEffectorY);
+					endEffectorPosition->Putz(endEffectorZ);
+	#ifdef ADEEL_DEBUG
+					//moveStartTime = timeGetTime();
+					//debugOut << "Before = "
+					//		 << endEffectorPosition->GetIsValid() << endl;
+	#endif
+					try
+					{
+						Robot->MoveStraight(endEffectorPosition);
+						Robot->Finish(ftLoose);
+					}
+					catch(...)
+					{
+						printf("Trying to move to an invalid location!\n");
+	#ifdef ADEEL_DEBUG
+						//debugOut << "Trying to move to an invalid location:"
+						//			<< endl
+						//debugOut << endEffectorX<< ", "
+						//		 << endEffectorY << ", "
+						//		 << endEffectorZ << endl;
+						//debugOut.flush();
+	#endif
+					}
+			
+	#ifdef ADEEL_DEBUG
+					//debugOut << timeGetTime() - moveStartTime << endl;
+					//debugOut << "After = "
+					//		 << endEffectorPosition->GetIsValid() << endl;
+					//debugOut.flush();
+	#endif
+				}
+				catch (_com_error MyError)
+				{
+					char WorkString[255];
+					sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
+					AfxMessageBox(WorkString);
+					closesocket(kinectAndIMUSocket);
+					WSACleanup();
+					Robot->ControlRelease();
+					cin.get();
+		#ifdef ADEEL_DEBUG
+					debugOut.close();
+		#endif
+					return -1;
+				} // catch (_com_error MyError)
+			}
+			else
+			{
+				printf("Ground collision detected!\n");
+	#ifdef ADEEL_DEBUG
+				debugOut << "Ground collision detected:"
+							<< endl
+							<< endEffectorX<< ", "
+							<< endEffectorY << ", "
+							<< endEffectorZ << endl << endl;
+				debugOut.flush();
+	#endif
+			}
+
+			// send Kinect and IMU update request
+			curr_buffer_ptr = sendBuffer;
+			totalBytesWritten = 0;
+			currBytesWritten = -1;
+			while(totalBytesWritten < 1)
+			{
+				currBytesWritten = send(kinectAndIMUSocket,
+										curr_buffer_ptr,
+										1 - totalBytesWritten,
+										0);
+				if (currBytesWritten == 0)
+				{
+					printf("Connection closing...\n");
+					closesocket(kinectAndIMUSocket);
+					WSACleanup();
+					Robot->ControlRelease();
+					cin.get();
+		#ifdef ADEEL_DEBUG
+					debugOut.close();
+		#endif
+					return 0;
+				}
+				else if (currBytesWritten < 0)
+				{
+					printf("send failed: %d\n", WSAGetLastError());
+					closesocket(kinectAndIMUSocket);
+					WSACleanup();
+					Robot->ControlRelease();
+					cin.get();
+		#ifdef ADEEL_DEBUG
+					debugOut.close();
+		#endif
+					return -1;
+				}
+
+				totalBytesWritten += currBytesWritten;
+				curr_buffer_ptr += currBytesWritten;
+			}	
 		}
 		if(FD_ISSET(arduinoSocket,
 					&request_socket_descriptor_set))
@@ -247,357 +490,15 @@ int main() {
 				goto FAILURE;
 			}
 			cout << recvBuff[0] << endl;
-		}
+		} // if(FD_ISSET(arduinoSocket,
+		  //             &request_socket_descriptor_set))
 	} // while(true)
-
-	#ifdef TEMP
-	//Accept a client socket
-	kinectAndIMUSocket = accept(kinectAndIMUListenSocket, NULL, NULL);
-	if (kinectAndIMUSocket == INVALID_SOCKET) {
-		printf("accept failed: %d\n", WSAGetLastError());
-		closesocket(kinectAndIMUListenSocket);
-		WSACleanup();
-		#ifdef TEMP
-		Robot->ControlRelease();
-		#endif
-		cin.get();
-		return -1;
-	}
-
-	printf("Accept succeeded\n\n");
-	
-
-	KinectAndIMUData kinectAndIMUData;
-	char sendBuffer[1];
-	int curr_bytes_read = -1;
-	unsigned int total_bytes_read = 0;
-	char *curr_buffer_ptr = sendBuffer;
-	float endEffectorX,
-		  endEffectorY,
-		  endEffectorZ,
-		  endEffectorYrot,
-		  endEffectorZMin = 0;
-	unsigned int totalBytesWritten = 0;
-	int currBytesWritten = -1;
-	//double currArmReach = 0;
-	#endif
 	
 #ifdef ADEEL_DEBUG
 	//int moveStartTime;
 	fstream debugOut("debug.txt", ios::out);
 #endif
-#ifdef TEMP
-	while(true)
-	{
-		// Send the message
-		curr_buffer_ptr = sendBuffer;
-		totalBytesWritten = 0;
-		currBytesWritten = -1;
-		while(totalBytesWritten < 1)
-		{
-			currBytesWritten = send(kinectAndIMUSocket,
-									curr_buffer_ptr,
-									1 - totalBytesWritten,
-									0);
-			if (currBytesWritten == 0)
-			{
-				printf("Connection closing...\n");
-				closesocket(kinectAndIMUSocket);
-				WSACleanup();
-				Robot->ControlRelease();
-				cin.get();
-#ifdef ADEEL_DEBUG
-				debugOut.close();
-#endif
-				return 0;
-			}
-			else if (currBytesWritten < 0)
-			{
-				printf("send failed: %d\n", WSAGetLastError());
-				closesocket(kinectAndIMUSocket);
-				WSACleanup();
-				Robot->ControlRelease();
-				cin.get();
-#ifdef ADEEL_DEBUG
-				debugOut.close();
-#endif
-				return -1;
-			}
 
-			totalBytesWritten += currBytesWritten;
-			curr_buffer_ptr += currBytesWritten;
-		}
-
-
-		// Receive position update
-		curr_bytes_read = -1;
-		total_bytes_read = 0;
-		curr_buffer_ptr = (char *)(&kinectAndIMUData);
-		while(total_bytes_read < sizeof(kinectAndIMUData))
-		{
-			curr_bytes_read = recv(kinectAndIMUSocket,
-								   curr_buffer_ptr,
-								   sizeof(kinectAndIMUData) - total_bytes_read,
-								   0);
-			if (curr_bytes_read == 0)
-			{
-				printf("Connection closing...\n");
-				closesocket(kinectAndIMUSocket);
-				WSACleanup();
-				Robot->ControlRelease();
-				cin.get();
-#ifdef ADEEL_DEBUG
-				debugOut.close();
-#endif
-				return 0;
-			}
-			else if (curr_bytes_read < 0)
-			{
-				printf("recv failed: %d\n", WSAGetLastError());
-				closesocket(kinectAndIMUSocket);
-				WSACleanup();
-				Robot->ControlRelease();
-				cin.get();
-#ifdef ADEEL_DEBUG
-				debugOut.close();
-#endif
-				return -1;
-			}
-
-			total_bytes_read += curr_bytes_read;
-			curr_buffer_ptr += curr_bytes_read;
-		}
-
-		/*
-		memcpy_s( (void *)(&endEffectorX),
-				  sizeof(endEffectorX),
-			      (const void *)(position_update_buffer + 8),
-				  4);
-		memcpy_s( (void *)(&endEffectorY),
-				  sizeof(endEffectorY),
-				  (const void *)(position_update_buffer),
-				  4);
-		memcpy_s( (void *)(&endEffectorZ),
-				  sizeof(endEffectorZ),
-				  (const void *)(position_update_buffer + 4),
-				  4);
-		*/
-
-		endEffectorX = kinectAndIMUData.kinectData.rightHandZ * 
-					   POSITION_SCALNG_FACTOR +
-					   readyPositionX;
-		endEffectorY = -1 * kinectAndIMUData.kinectData.rightHandX *
-					   POSITION_SCALNG_FACTOR +
-					   readyPositionY;
-		endEffectorZ = kinectAndIMUData.kinectData.rightHandY *
-					   POSITION_SCALNG_FACTOR +
-					   readyPositionZ;
-
-		endEffectorYrot = endEffectorPosition->Getyrot(); 
-
-#ifdef ADEEL_DEBUG
-		/*
-		debugOut << "endEffectorYrot = "
-				 << endEffectorYrot
-				 << endl;
-				 */
-#endif
-
-		if( endEffectorYrot > 0 )
-		{
-			endEffectorZMin = 
-				endEffectorZ -
-				( float )( END_EFFECTOR_LENGTH_MM ) *
-				sin( endEffectorYrot *
-					 ( ( float )( PI ) ) /
-					 ( ( float )( 180 ) ) );
-#ifdef ADEEL_DEBUG
-			debugOut << "endEffectorYrot = " << endEffectorYrot << endl
-					 << "sin(endEffectorYrot) = " 
-					 <<	 sin( endEffectorYrot *
-							  ( ( float )( PI ) ) /
-							  ( ( float )( 180 ) ) ) << endl
-					 << "sinOpMult = "
-					 << ( float )( END_EFFECTOR_LENGTH_MM ) *
-						sin( endEffectorYrot *
-							 ( ( float )( PI ) ) /
-							 ( ( float )( 180 ) ) ) << endl;
-			debugOut.flush();
-#endif
-
-		}
-		else if( endEffectorYrot < 0 )
-		{
-			endEffectorZMin = 
-				endEffectorZ -
-				( float )( END_EFFECTOR_SUPPORT_LINK_LENGTH_MM ) *
-				sin( ( float )( -1 ) * endEffectorYrot *
-					 ( ( float )( PI ) ) /
-					 ( ( float )( 180 ) ) );
-#ifdef ADEEL_DEBUG
-			debugOut << "endEffectorYrot = " << endEffectorYrot << endl
-					 << "sin(endEffectorYrot) = " 
-					 <<	 sin( endEffectorYrot *
-							  ( ( float )( PI ) ) /
-							  ( ( float )( 180 ) ) ) << endl
-					 << "sinOpMult = "
-					 << ( float )( END_EFFECTOR_LENGTH_MM ) *
-						sin( endEffectorYrot *
-							 ( ( float )( PI ) ) /
-							 ( ( float )( 180 ) ) ) << endl;
-			debugOut.flush();
-#endif
-		}
-		else
-		{
-			endEffectorZMin = endEffectorZ;
-		}
-
-#ifdef ADEEL_DEBUG
-		debugOut << "endEffectorZ = " << endEffectorZ << endl
-				 << "endEffectorZMin = " << endEffectorZMin << endl;
-		debugOut.flush();
-#endif
-
-		if( endEffectorZMin >= (float)(Z_MIN_MM) )
-		{
-			try
-			{
-				endEffectorPosition->Putx(endEffectorX);
-				endEffectorPosition->Puty(endEffectorY);
-				endEffectorPosition->Putz(endEffectorZ);
-#ifdef ADEEL_DEBUG
-				//moveStartTime = timeGetTime();
-				//debugOut << "Before = "
-				//		 << endEffectorPosition->GetIsValid() << endl;
-#endif
-				try
-				{
-					Robot->MoveStraight(endEffectorPosition);
-					Robot->Finish(ftLoose);
-				}
-				catch(...)
-				{
-					printf("Trying to move to an invalid location!\n");
-#ifdef ADEEL_DEBUG
-					//debugOut << "Trying to move to an invalid location:"
-					//			<< endl
-					//debugOut << endEffectorX<< ", "
-					//		 << endEffectorY << ", "
-					//		 << endEffectorZ << endl;
-					//debugOut.flush();
-#endif
-				}
-			
-#ifdef ADEEL_DEBUG
-				//debugOut << timeGetTime() - moveStartTime << endl;
-				//debugOut << "After = "
-				//		 << endEffectorPosition->GetIsValid() << endl;
-				//debugOut.flush();
-#endif
-			}
-			catch (_com_error MyError)
-			{
-				char WorkString[255];
-				sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
-				AfxMessageBox(WorkString);
-				closesocket(kinectAndIMUSocket);
-				WSACleanup();
-				Robot->ControlRelease();
-				cin.get();
-	#ifdef ADEEL_DEBUG
-				debugOut.close();
-	#endif
-				return -1;
-			} // catch (_com_error MyError)
-		}
-		else
-		{
-			printf("Ground collision detected!\n");
-#ifdef ADEEL_DEBUG
-			debugOut << "Ground collision detected:"
-					 << endl
-					 << endEffectorX<< ", "
-					 << endEffectorY << ", "
-					 << endEffectorZ << endl << endl;
-			debugOut.flush();
-#endif
-		}
-
-		
-		/*
-		currArmReach = sqrt( pow( (double)(endEffectorX), 2 ) +
-			 				 pow( (double)(endEffectorY), 2 ) +
-							 pow( (double)(endEffectorZ), 2 ) );
-		if( currArmReach < MAX_ARM_REACH_MM )
-		{
-			try
-			{
-				endEffectorPosition->Putx(endEffectorX);
-				endEffectorPosition->Puty(endEffectorY);
-				endEffectorPosition->Putz(endEffectorZ);
-#ifdef ADEEL_DEBUG
-
-				//moveStartTime = timeGetTime();
-				//debugOut << "Before = "
-				//		 << endEffectorPosition->GetIsValid() << endl;
-#endif
-				try
-				{
-					Robot->MoveStraight(endEffectorPosition);
-					Robot->Finish(ftLoose);
-				}
-				catch(...)
-				{
-					printf("Trying to move to an invalid location!\n");
-#ifdef ADEEL_DEBUG
-					debugOut << "Trying to move to an invalid location:"
-							 << endl
-							 << endEffectorX<< ", "
-							 << endEffectorY << ", "
-							 << endEffectorZ << endl;
-					debugOut.flush();
-#endif
-				}
-			
-#ifdef ADEEL_DEBUG
-				//debugOut << timeGetTime() - moveStartTime << endl;
-				//debugOut << "After = "
-				//		 << endEffectorPosition->GetIsValid() << endl;
-				//debugOut.flush();
-#endif
-			}
-			catch (_com_error MyError)
-			{
-				char WorkString[255];
-				sprintf(WorkString, "The following error occurred during initialization --\n%s", (LPCTSTR) MyError.Description());
-				AfxMessageBox(WorkString);
-				closesocket(kinectAndIMUSocket);
-				WSACleanup();
-				Robot->ControlRelease();
-				cin.get();
-#ifdef ADEEL_DEBUG
-				debugOut.close();
-#endif
-				return -1;
-			} // catch (_com_error MyError)
-		} // if( currArmReach < MAX_ARM_REACH_MM )
-		else
-		{
-			printf("Max arm reach exceeded!\n");
-#ifdef ADEEL_DEBUG
-			debugOut << "Max arm reach exceeded:"
-					 << endl
-					 << endEffectorX<< ", "
-					 << endEffectorY << ", "
-					 << endEffectorZ << endl;
-			debugOut.flush();
-#endif
-		} // else
-		*/
-		//Sleep(POSITION_UPDATE_WAIT_INTERVAL_MS);
-	} // while(true)
-#endif
 
 	retCode = 0;
 	goto SUCCESS;
@@ -607,6 +508,8 @@ FAILURE:
 
 SUCCESS:
 	
+	Robot->ControlRelease();
+
 	if(result != NULL)
 	{
 		freeaddrinfo(result);
