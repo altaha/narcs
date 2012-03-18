@@ -10,8 +10,9 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
+#ifdef TEMP
 #import "C:\Program Files\CRS Robotics\ActiveRobot\ActiveRobot.dll"
-
+#endif
 
 #define DEFAULT_PORT  "62009"
 #define ARM_SPEED  100
@@ -29,12 +30,16 @@
 #include <fstream>
 #endif
 
-
+#ifdef TEMP
 using namespace ACTIVEROBOTLib;
+#endif
 using namespace std;
 
 
 int main() {
+	int retCode = 0;
+
+	#ifdef TEMP
 	if FAILED(CoInitialize(NULL))
 	{
 		AfxMessageBox("CoInitialize() failed.");
@@ -86,25 +91,26 @@ int main() {
 		Robot->ControlRelease();
 		exit(1);
 	}
-
+	#endif
 
     int iResult, iSendResult;
-
 	WSADATA wsaData;	//to inialize Windows socket dll
-	struct addrinfo *result=NULL, *ptr=NULL, hints;
-	SOCKET ListenSocket = INVALID_SOCKET, kinectAndIMUSocket = INVALID_SOCKET;
-
+	struct addrinfo *result = NULL, hints;
+	fd_set master_socket_descriptor_set,
+		   request_socket_descriptor_set;
+	SOCKET listenSocket = INVALID_SOCKET,
+		   kinectAndIMUSocket = INVALID_SOCKET,
+		   arduinoSocket = INVALID_SOCKET,
+		   maxSocket = INVALID_SOCKET;
 
 	//Initialize Winscok
 	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 	if (iResult) {
 		printf("WSAStartup failed: %d\n", iResult);
-		Robot->ControlRelease();
-		cin.get();
-		return -1;
+		goto FAILURE;
 	}
 
-	//Creating socker IP address
+	//Creating socket IP address
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -115,55 +121,145 @@ int main() {
 	iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
 	if (iResult) {
 		printf("getaddrinfofailed: %d\n", iResult);
-		WSACleanup();
-		Robot->ControlRelease();
-		cin.get();
-		return -1;
+		goto FAILURE;
 	}
 	
 	//Create a SOCKET for the server to listen for client connections
-	ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-
-	if (ListenSocket == INVALID_SOCKET) {
+	listenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+	if (listenSocket == INVALID_SOCKET) {
 		printf("Error at socket(): %ld\n", WSAGetLastError());
-		freeaddrinfo(result);
-		WSACleanup();
-		Robot->ControlRelease();
-		cin.get();
-		return -1;
-	}
-
-	//Setup the TCP listening socket
-	iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-	if (iResult == SOCKET_ERROR) {
-		printf("bind failed with error: %d\n", WSAGetLastError());
-		freeaddrinfo(result);
-		closesocket(ListenSocket);
-		WSACleanup();
-		Robot->ControlRelease();
-		cin.get();
-		return -1;
-	}
-
-	freeaddrinfo(result);	// no longer need the address information
-
-	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
-		printf("Listen failed with error: %ld\n", WSAGetLastError());
-		closesocket(ListenSocket);
-		WSACleanup();
-		Robot->ControlRelease();
-		cin.get();
-		return -1;
+		goto FAILURE;
 	}
 	
-	printf("All good. Waiting for request\n");
-	//Accept a client socket
-	kinectAndIMUSocket = accept(ListenSocket, NULL, NULL);
+/*
+	int setsockopt_optval = -1;
+	if(setsockopt(kinectAndIMUListenSocket,
+				  SOL_SOCKET,
+				  SO_REUSEADDR,
+				  (const char *)(&setsockopt_optval),
+				  sizeof(setsockopt_optval)) != 0)
+	{
+		goto FAILURE;
+	}
+	*/
+	//Setup the TCP listening socket
+	iResult = bind(listenSocket, result->ai_addr, (int)result->ai_addrlen);
+	if (iResult == SOCKET_ERROR) {
+		printf("bind failed with error: %d\n", WSAGetLastError());
+		goto FAILURE;
+	}
+
+	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR) {
+		printf("Listen failed with error: %ld\n", WSAGetLastError());
+		goto FAILURE;
+	}
+
+	kinectAndIMUSocket = accept(listenSocket, NULL, NULL);
 	if (kinectAndIMUSocket == INVALID_SOCKET) {
 		printf("accept failed: %d\n", WSAGetLastError());
-		closesocket(ListenSocket);
+		goto FAILURE;
+	}
+
+	arduinoSocket = accept(listenSocket, NULL, NULL);
+	if (arduinoSocket == INVALID_SOCKET) {
+		printf("accept failed: %d\n", WSAGetLastError());
+		goto FAILURE;
+	}
+
+	freeaddrinfo(result);
+	result = NULL;
+
+	// <debug>
+	/*
+	char recvBuff[1];
+	int curr_bytes_read = recv(arduinoSocket,
+							   recvBuff,
+							   1,
+							   0);
+	if (curr_bytes_read != 1)
+	{
+		goto FAILURE;
+	}
+	cout << recvBuff[0] << endl;
+	*/
+	// </debug>
+
+	
+	FD_ZERO(&master_socket_descriptor_set);
+	FD_SET(kinectAndIMUSocket, &master_socket_descriptor_set);
+	FD_SET(arduinoSocket, &master_socket_descriptor_set);
+	
+	if(kinectAndIMUSocket > arduinoSocket)
+	{
+		maxSocket = kinectAndIMUSocket;
+	}
+	else
+	{
+		maxSocket = arduinoSocket;
+	}
+
+	while(true)
+	{
+		request_socket_descriptor_set = master_socket_descriptor_set;
+	
+		// <debug>
+		printf("Waiting for select\n");
+		// </debug>
+		if(select(maxSocket + 1,
+				  &request_socket_descriptor_set,
+				  NULL,
+				  NULL,
+				  NULL) < 0)
+		{
+			printf("select() error");
+			goto FAILURE;
+		}
+		// <debug>
+		printf("select finished\n");
+		// </debug>
+
+		if(FD_ISSET(kinectAndIMUSocket,
+					&request_socket_descriptor_set))
+		{
+			printf("Got data from kinectAndIMUSocket.\n");
+			char recvBuff[1];
+			int curr_bytes_read = recv(kinectAndIMUSocket,
+									   recvBuff,
+									   1,
+									   0);
+			if (curr_bytes_read != 1)
+			{
+				goto FAILURE;
+			}
+			cout << recvBuff[0] << endl;
+		}
+		if(FD_ISSET(arduinoSocket,
+					&request_socket_descriptor_set))
+		{
+			printf("Got data from arduinoSocket.\n");
+			char recvBuff[1];
+			int curr_bytes_read = recv(arduinoSocket,
+									   recvBuff,
+									   1,
+									   0);
+			if (curr_bytes_read != 1)
+			{
+				goto FAILURE;
+			}
+			cout << recvBuff[0] << endl;
+		}
+	} // while(true)
+
+	#ifdef TEMP
+	//Accept a client socket
+	kinectAndIMUSocket = accept(kinectAndIMUListenSocket, NULL, NULL);
+	if (kinectAndIMUSocket == INVALID_SOCKET) {
+		printf("accept failed: %d\n", WSAGetLastError());
+		closesocket(kinectAndIMUListenSocket);
 		WSACleanup();
+		#ifdef TEMP
 		Robot->ControlRelease();
+		#endif
 		cin.get();
 		return -1;
 	}
@@ -184,11 +280,13 @@ int main() {
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
 	//double currArmReach = 0;
+	#endif
 	
 #ifdef ADEEL_DEBUG
 	//int moveStartTime;
 	fstream debugOut("debug.txt", ios::out);
 #endif
+#ifdef TEMP
 	while(true)
 	{
 		// Send the message
@@ -499,6 +597,33 @@ int main() {
 		*/
 		//Sleep(POSITION_UPDATE_WAIT_INTERVAL_MS);
 	} // while(true)
+#endif
+
+	retCode = 0;
+	goto SUCCESS;
+
+FAILURE:
+	retCode = -1;
+
+SUCCESS:
+	
+	if(result != NULL)
+	{
+		freeaddrinfo(result);
+	}
+	if(listenSocket != INVALID_SOCKET)
+	{
+		closesocket(listenSocket);
+	}
+	if(kinectAndIMUSocket != INVALID_SOCKET)
+	{
+		closesocket(kinectAndIMUSocket);
+	}
+	if(arduinoSocket != INVALID_SOCKET)
+	{
+		closesocket(arduinoSocket);
+	}
+	WSACleanup();
 
 	cin.get();
 	return 0;
