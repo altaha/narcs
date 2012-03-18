@@ -205,6 +205,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		goto FAILURE;
 	}
 
+
+	global->start_threads();
 #ifdef ADEEL_DEBUG
 	fstream debugOut("IMUDebug.txt", ios::out);
 #endif
@@ -218,6 +220,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		 << "Enter any key to exit program." << endl;
 	while(true)
 	{
+		/*
 		// wait for an update request from the remote side
 		while(true)
 		{
@@ -268,14 +271,13 @@ int _tmain(int argc, _TCHAR* argv[])
 			totalBytesWritten += currBytesWritten;
 			currBuffPtr += currBytesWritten;
 		}
-
+		*/
 		// exit program if a key was pressed
 		if(_kbhit() != 0)
 		{
 			break;
 		}
 	}
-
 
 
 

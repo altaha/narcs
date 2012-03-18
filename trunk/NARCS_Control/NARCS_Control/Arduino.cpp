@@ -24,10 +24,11 @@ int Arduino::threadMain(void)
 	char *recvBuffer = NULL;
 	int errCode;
 	int ForceValue=0;
+	int retCode = 0;
 
 	HANDLE hSerial;
-	std::string a="COM25";
-	hSerial = CreateFile( L"\\\\.\\COM25",
+	std::string a="COM8";
+	hSerial = CreateFile( L"\\\\.\\COM8",
 						GENERIC_READ | GENERIC_WRITE,
 						0,
 						0,
@@ -69,10 +70,13 @@ int Arduino::threadMain(void)
 	char szwBuff[1] = {0}; //write serial buffer
 	DWORD dwBytesRead = 0;
 	char state='r'; //initialize state to motor off
+	char *currBuffPtr = NULL;
+	unsigned int totalBytesWritten = 0;
+	int currBytesWritten = -1;
 	while(true){
 		if(!ReadFile(hSerial, szBuff, 3, &dwBytesRead, NULL)){
-		//error occurred. Report to user.
-			//cout<<"error\n";
+			cout << "Arduino Thread - ReadFile(...) failed." << endl;
+			goto FAILURE;
 		}
 		char check=(char)szBuff[0];
 		
@@ -86,30 +90,46 @@ int Arduino::threadMain(void)
 			}
 			
 		}
-		//scale the force reading
-		if(ForceValue>1000)
-			ForceValue=0;
-		else if(ForceValue<1000 && ForceValue>699)
+		else
 		{
-			ForceValue=1000-ForceValue;
-			ForceValue=( (ForceValue/300)*60 )+30;
-		}
-		else if(ForceValue<700)
-			ForceValue=90;
-
-		//now send the force value to the remote site
-		sendBuffer=(char *)(&ForceValue);
-		int currBytesWritten = send(ArduinoSocket,
-										sendBuffer,
-										sizeof(ForceValue),
+			//scale the force reading
+			if(ForceValue>1000)
+			{
+				ForceValue=0;
+			}
+			else if(ForceValue <= 1000 && ForceValue>699)
+			{
+				ForceValue=1000-ForceValue;
+				ForceValue = ( int )( ( ( (double)(ForceValue) / (double)(300) )* (double)(60) )+ (double)(30) );
+			}
+			else if(ForceValue<700)
+			{
+				ForceValue=90;
+			}
+			// now send the force value to the remote site
+			currBuffPtr = (char *)(&ForceValue);
+			totalBytesWritten = 0;
+			currBytesWritten = -1;
+			while(totalBytesWritten < sizeof(ForceValue))
+			{
+				currBytesWritten = send(ArduinoSocket,
+										currBuffPtr,
+										sizeof(ForceValue) - totalBytesWritten,
 										0);
-		if (currBytesWritten == SOCKET_ERROR)
-		{
-			cout << "_tmain(...) - send(...) failed." << endl;
-				
+				if (currBytesWritten == SOCKET_ERROR)
+				{
+					cout << "Arduino Thread - send(...) failed." << endl;
+					goto FAILURE;
+				}
+
+				totalBytesWritten += currBytesWritten;
+				currBuffPtr += currBytesWritten;
+			}
+
 		}
 		
 
+		/*
 		//get motor values from other side
 		recv(ArduinoSocket, recvBuffer, 1, 0);
 		szwBuff[0]=recvBuffer[0];
@@ -129,11 +149,18 @@ int Arduino::threadMain(void)
 			cout<<"state changed :"<<szwBuff[0]<<endl;
 		}
 		state=szwBuff[0]; //change the state
-	
+		*/
 	
 	}
+
+	retCode = 0;
+	goto SUCCESS;
 	
+FAILURE:
+	retCode = -1;
+
+SUCCESS:
 
 	CloseHandle(hSerial);
-	return EXIT_SUCCESS;
+	return retCode;
 }
