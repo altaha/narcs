@@ -17,5 +17,4 @@ typedef struct KinectAndIMUData
 {
 	KinectData kinectData;
 	IMUData imuData;
-
 } KinectAndIMUData;

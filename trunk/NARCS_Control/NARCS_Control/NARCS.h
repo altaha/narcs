@@ -20,10 +20,11 @@ public:
 	//timeout in ms: -1 for infinite, 0 for nowait
 	void reincarnate(unsigned long timeout);	
 
+	ThreadObj* getHandle(int i);
+
 private:
 	int _nActiveThreads; //TODO: figure out if this is needed
 
 	ThreadObj* _threads[NUM_THREADS]; //handle to thread classes
 	void stop_threads();
-
 };

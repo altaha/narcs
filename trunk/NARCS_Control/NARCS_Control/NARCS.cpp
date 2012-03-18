@@ -116,3 +116,8 @@ void NARCS::reincarnate(unsigned long timeout)
 		}
 	}
 }
+
+ThreadObj* NARCS::getHandle(int i) 
+{
+	return _threads[(Thread_type) i];
+}

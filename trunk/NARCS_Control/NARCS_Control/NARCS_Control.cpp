@@ -9,10 +9,11 @@
 // <adeel>
 #include <conio.h>
 // </adeel>
-//#include "NARCS.h"
+#include "NARCS.h"
 //#include "ThreadObj.h"
 #include "SharedMem.h"
 #include "SynchObjs.h"
+#include "Arduino.h"
 //#include "IMU.h"
 // <adeel>
 #include "DataTransferStructs.h"
@@ -23,7 +24,7 @@
 #define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_2  168
 #define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_3  1
 #define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_4  1
-#define KINECT_AND_IMU_SOCKET_PORT  62009
+#define DEFAULT_PORT  62009
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -34,7 +35,6 @@
 
 
 #ifdef ADEEL_DEBUG
-#include <iostream>
 #include <fstream>
 #endif
 
@@ -59,6 +59,9 @@ using namespace std;
 */
 int _tmain(int argc, _TCHAR* argv[])
 {
+	SOCKET kinectAndIMUSocket = INVALID_SOCKET;
+	NARCS* global = NULL;
+	/*
 	SharedMem kinectSharedMemory (TEXT("kinectSharedMemory"), false);
 	MutexObj kinectSharedMemoryMutex;
 	SharedMem IMUSharedMemory (TEXT("IMUSharedMemory"), false);
@@ -91,14 +94,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		Sleep(500);
 	}
-	
+	*/
 
 
 	int retCode = 0;
 	WSADATA wsaData;
-	SOCKET kinectAndIMUSocket = INVALID_SOCKET;
-
-
+	
 	// Initialize Winsock
 	retCode = WSAStartup(MAKEWORD(2,2), &wsaData);
 	if (retCode != 0)
@@ -119,7 +120,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	ZeroMemory(&remoteSideComputerAddress, sizeof(remoteSideComputerAddress));
 	remoteSideComputerAddress.sin_family = AF_INET;
-	remoteSideComputerAddress.sin_port = htons(KINECT_AND_IMU_SOCKET_PORT);
+	remoteSideComputerAddress.sin_port = htons(DEFAULT_PORT);
 	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b1 =
 												(unsigned char)(REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1);
 	remoteSideComputerAddress.sin_addr.S_un.S_un_b.s_b2 =
@@ -138,15 +139,76 @@ int _tmain(int argc, _TCHAR* argv[])
 		goto FAILURE;
 	}
 
-	// make the socket non-blocking
+	// make kinectAndIMUSocket non-blocking
 	u_long socketMode = 1;
 	ioctlsocket(kinectAndIMUSocket, FIONBIO, &socketMode);
 
 
+	
+	// allocate threads
+	try
+	{
+		printf("Starting threads\n");
+		global = new NARCS();
+		global->allocate_threads();
+	}
+	catch (int e)
+	{
+		char * exceptionStr;
+		switch (e){
+		case UNEXPECTED_ERROR:
+			exceptionStr = "Unexpected Error in Win32 calls\n";
+			break;
+
+		case INVALID_THREAD_TYPE:
+			exceptionStr = "Specified thread type is invalid\n";
+			break;
+
+		case FAILED_THREAD_CREATE:
+			exceptionStr = "Failed to create thread\n";
+			break;
+
+		case INVALID_PARAM_VALUE:
+			exceptionStr = "Invalid parameter value specified to a function\n";
+			break;
+
+		default:
+			exceptionStr = "Unknown int Exception: %d\n";
+			break;
+		}
+		printf("Exception: %s",exceptionStr);
+	}
+	catch (exception& e)
+	{
+		printf("Standard exception: %s\n", e.what() );
+	}
+	catch (...){
+		printf("Exception: unknown  type\n");
+	}
+
+	// Creating Arduino Socket
+	Arduino* ArduinoHandle = (Arduino*)(global->getHandle(ARDUINO_THREAD));
+	
+	ArduinoHandle->ArduinoSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (ArduinoHandle->ArduinoSocket == INVALID_SOCKET)
+	{
+		cout << "_tmain(...) - socket(...) failed." << endl;
+		goto FAILURE;
+	}
+
+	retCode = connect(ArduinoHandle->ArduinoSocket,
+					  (const struct sockaddr *)(&remoteSideComputerAddress),
+					  sizeof(remoteSideComputerAddress));
+	if (retCode == SOCKET_ERROR)
+	{
+		cout << "_tmain(...) - connect(...) failed." << endl;
+		goto FAILURE;
+	}
+
 #ifdef ADEEL_DEBUG
 	fstream debugOut("IMUDebug.txt", ios::out);
 #endif
-	
+#ifdef TEMP
 	char recvBuffer[1];
 	char *currBuffPtr = NULL;
 	unsigned int totalBytesWritten = 0;
@@ -241,7 +303,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	debugOut.close();
 #endif
 
-
+#endif
 	retCode = 0;
 	goto SUCCESS;
 
@@ -255,14 +317,14 @@ SUCCESS:
 	}
 	WSACleanup();
 
+	if(global != NULL)
+	{
+		delete global;
+	}
+
 	cin.get();
 	return retCode;
-
-
-
-
-
-
+}
 
 
 
@@ -349,5 +411,5 @@ SUCCESS:
 	//Exit and cleanup Code
 	delete global;
 	return 0;
-	*/
-}
+
+}	*/

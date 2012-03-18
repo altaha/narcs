@@ -28,9 +28,6 @@
     <ClInclude Include="ThreadObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NARCS.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -49,15 +46,12 @@
     <ClInclude Include="Arduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NARCS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NARCS_Control.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NARCS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IMU.cpp">
@@ -73,6 +67,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Arduino.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NARCS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NARCS_Control.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
