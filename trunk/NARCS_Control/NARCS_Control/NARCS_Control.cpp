@@ -1,11 +1,13 @@
 // NARCS_Control.cpp : Defines the entry point for the console application.
 //
 
-
+// <adeel>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+// </adeel>
 #include "stdafx.h"
 // <adeel>
+#include <conio.h>
 // </adeel>
 //#include "NARCS.h"
 //#include "ThreadObj.h"
@@ -149,6 +151,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	char *currBuffPtr = NULL;
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
+
+	cout << "Program Running." << endl
+		 << "Enter any key to exit program." << endl;
 	while(true)
 	{
 		// wait for an update request from the remote side
@@ -201,12 +206,12 @@ int _tmain(int argc, _TCHAR* argv[])
 			totalBytesWritten += currBytesWritten;
 			currBuffPtr += currBytesWritten;
 		}
-		/*
-		if(cin.peek() != EOF)
+
+		// exit program if a key was pressed
+		if(_kbhit() != 0)
 		{
 			break;
 		}
-		*/
 	}
 
 
