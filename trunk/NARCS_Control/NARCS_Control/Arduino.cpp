@@ -100,11 +100,11 @@ int Arduino::threadMain(void)
 			else if(ForceValue <= 1000 && ForceValue>699)
 			{
 				ForceValue=1000-ForceValue;
-				ForceValue = ( int )( ( ( (double)(ForceValue) / (double)(300) )* (double)(60) )+ (double)(30) );
+				ForceValue = ( int )( ( ( (double)(ForceValue) / (double)(300) )* (double)(40) )+ (double)(30) );
 			}
 			else if(ForceValue<700)
 			{
-				ForceValue=90;
+				ForceValue=70;
 			}
 			// now send the force value to the remote site
 			currBuffPtr = (char *)(&ForceValue);
