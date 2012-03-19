@@ -22,13 +22,11 @@
 //#define NEG_ANGLE_GROUND_DETECTION_OFFSET_MM  28
 #define Z_MIN_MM  50
 #define PI  3.14159265
+#define FORCE_UPDATE_REQUEST_CHAR  'f'
+#define START_VIBRATING_MOTORS_CHAR  'o'
+#define STOP_VIBRATING_MOTORS_CHAR  'r'
 
 
-//#define ADEEL_DEBUG
-
-#ifdef ADEEL_DEBUG
-#include <fstream>
-#endif
 
 using namespace ACTIVEROBOTLib;
 using namespace std;
@@ -69,9 +67,7 @@ int main() {
 	const float readyPositionX = readyPosition->Getx(),
 		        readyPositionY = readyPosition->Gety(),
 		        readyPositionZ = readyPosition->Getz();
-	// <debug>
-	VARIANT_BOOL isValid = readyPosition->GetIsValid();
-	// </debug>
+
 
 	ICRSLocationPtr endEffectorPosition = 
 							ICRSLocationPtr(__uuidof(CRSLocation));
@@ -171,8 +167,8 @@ int main() {
 	{
 		maxSocket = arduinoSocket;
 	}
-
-	KinectAndIMUData kinectAndIMUData;
+	
+	KinectAndHandOrientation kinectAndHandOrientation;
 	char sendBuffer[1];
 	int curr_bytes_read = -1;
 	unsigned int total_bytes_read = 0;
@@ -180,7 +176,6 @@ int main() {
 	float endEffectorX,
 		  endEffectorY,
 		  endEffectorZ,
-		  endEffectorYrot,
 		  endEffectorZMin = 0;
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
@@ -188,6 +183,7 @@ int main() {
 		prevForceValue = 0;
 	const float gripperForceDistanceMapping[5] = 
 										{1.58, 1.32, 1.08, 0.87, 0.73};
+	bool vibratorMotorsOn = false;
 
 
 	// Send first Kinect and IMU update request
@@ -207,9 +203,6 @@ int main() {
 			WSACleanup();
 			Robot->ControlRelease();
 			cin.get();
-#ifdef ADEEL_DEBUG
-			debugOut.close();
-#endif
 			return 0;
 		}
 		else if (currBytesWritten < 0)
@@ -219,9 +212,6 @@ int main() {
 			WSACleanup();
 			Robot->ControlRelease();
 			cin.get();
-#ifdef ADEEL_DEBUG
-			debugOut.close();
-#endif
 			return -1;
 		}
 
@@ -229,7 +219,9 @@ int main() {
 		curr_buffer_ptr += currBytesWritten;
 	}
 
+
 	// Send first force update request
+	sendBuffer[0] = FORCE_UPDATE_REQUEST_CHAR;
 	curr_buffer_ptr = sendBuffer;
 	totalBytesWritten = 0;
 	currBytesWritten = -1;
@@ -251,7 +243,6 @@ int main() {
 		totalBytesWritten += currBytesWritten;
 		curr_buffer_ptr += currBytesWritten;
 	}
-
 	
 
 	while(true)
@@ -268,7 +259,6 @@ int main() {
 			printf("select() error");
 			goto FAILURE;
 		}
-	
 
 		if(FD_ISSET(kinectAndIMUSocket,
 					&request_socket_descriptor_set))
@@ -276,12 +266,12 @@ int main() {
 			// Receive Kinect and IMU update
 			curr_bytes_read = -1;
 			total_bytes_read = 0;
-			curr_buffer_ptr = (char *)(&kinectAndIMUData);
-			while(total_bytes_read < sizeof(kinectAndIMUData))
+			curr_buffer_ptr = (char *)(&kinectAndHandOrientation);
+			while(total_bytes_read < sizeof(kinectAndHandOrientation))
 			{
 				curr_bytes_read = recv(kinectAndIMUSocket,
 										curr_buffer_ptr,
-										sizeof(kinectAndIMUData) - total_bytes_read,
+										sizeof(kinectAndHandOrientation) - total_bytes_read,
 										0);
 				if (curr_bytes_read == 0)
 				{
@@ -290,9 +280,6 @@ int main() {
 					WSACleanup();
 					Robot->ControlRelease();
 					cin.get();
-	#ifdef ADEEL_DEBUG
-					debugOut.close();
-	#endif
 					return 0;
 				}
 				else if (curr_bytes_read < 0)
@@ -302,9 +289,6 @@ int main() {
 					WSACleanup();
 					Robot->ControlRelease();
 					cin.get();
-	#ifdef ADEEL_DEBUG
-					debugOut.close();
-	#endif
 					return -1;
 				}
 
@@ -327,82 +311,48 @@ int main() {
 						4);
 			*/
 
-			endEffectorX = kinectAndIMUData.kinectData.rightHandZ * 
+			endEffectorX = kinectAndHandOrientation.kinectData.rightHandZ * 
 							POSITION_SCALNG_FACTOR +
 							readyPositionX;
-			endEffectorY = -1 * kinectAndIMUData.kinectData.rightHandX *
+			endEffectorY = -1 * kinectAndHandOrientation.kinectData.rightHandX *
 							POSITION_SCALNG_FACTOR +
 							readyPositionY;
-			endEffectorZ = kinectAndIMUData.kinectData.rightHandY *
+			endEffectorZ = kinectAndHandOrientation.kinectData.rightHandY *
 							POSITION_SCALNG_FACTOR +
 							readyPositionZ;
 
-			endEffectorYrot = endEffectorPosition->Getyrot(); 
+			// <Ahmed> 
+			//endEffectorPosition->Putxrot(kinectAndHandOrientation.HandOrientation.roll);
+			//endEffectorPosition->Putyrot(kinectAndHandOrientation.HandOrientation.pitch);
+			
+			//cout << "Roll = " << kinectAndHandOrientation.HandOrientation.roll << endl
+			//	 << "Pitch = " << kinectAndHandOrientation.HandOrientation.pitch << endl;
+			// </Ahmed>
 
-	#ifdef ADEEL_DEBUG
-			/*
-			debugOut << "endEffectorYrot = "
-						<< endEffectorYrot
-						<< endl;
-						*/
-	#endif
-
-			if( endEffectorYrot > 0 )
+			if( kinectAndHandOrientation.HandOrientation.pitch > 0 )
 			{
 				endEffectorZMin = 
 					endEffectorZ -
 					( float )( END_EFFECTOR_LENGTH_MM ) *
-					sin( endEffectorYrot *
+					sin( kinectAndHandOrientation.HandOrientation.pitch *
 							( ( float )( PI ) ) /
 							( ( float )( 180 ) ) );
-	#ifdef ADEEL_DEBUG
-				debugOut << "endEffectorYrot = " << endEffectorYrot << endl
-							<< "sin(endEffectorYrot) = " 
-							<<	 sin( endEffectorYrot *
-									( ( float )( PI ) ) /
-									( ( float )( 180 ) ) ) << endl
-							<< "sinOpMult = "
-							<< ( float )( END_EFFECTOR_LENGTH_MM ) *
-							sin( endEffectorYrot *
-									( ( float )( PI ) ) /
-									( ( float )( 180 ) ) ) << endl;
-				debugOut.flush();
-	#endif
-
 			}
-			else if( endEffectorYrot < 0 )
+			else if( kinectAndHandOrientation.HandOrientation.pitch < 0 )
 			{
 				endEffectorZMin = 
 					endEffectorZ -
 					( float )( END_EFFECTOR_SUPPORT_LINK_LENGTH_MM ) *
-					sin( ( float )( -1 ) * endEffectorYrot *
+					sin( ( float )( -1 ) * kinectAndHandOrientation.HandOrientation.pitch *
 							( ( float )( PI ) ) /
 							( ( float )( 180 ) ) );
-	#ifdef ADEEL_DEBUG
-				debugOut << "endEffectorYrot = " << endEffectorYrot << endl
-							<< "sin(endEffectorYrot) = " 
-							<<	 sin( endEffectorYrot *
-									( ( float )( PI ) ) /
-									( ( float )( 180 ) ) ) << endl
-							<< "sinOpMult = "
-							<< ( float )( END_EFFECTOR_LENGTH_MM ) *
-							sin( endEffectorYrot *
-									( ( float )( PI ) ) /
-									( ( float )( 180 ) ) ) << endl;
-				debugOut.flush();
-	#endif
 			}
 			else
 			{
 				endEffectorZMin = endEffectorZ;
 			}
 
-	#ifdef ADEEL_DEBUG
-			debugOut << "endEffectorZ = " << endEffectorZ << endl
-						<< "endEffectorZMin = " << endEffectorZMin << endl;
-			debugOut.flush();
-	#endif
-
+	
 			if( endEffectorZMin >= (float)(Z_MIN_MM) )
 			{
 				try
@@ -410,35 +360,76 @@ int main() {
 					endEffectorPosition->Putx(endEffectorX);
 					endEffectorPosition->Puty(endEffectorY);
 					endEffectorPosition->Putz(endEffectorZ);
-	#ifdef ADEEL_DEBUG
-					//moveStartTime = timeGetTime();
-					//debugOut << "Before = "
-					//		 << endEffectorPosition->GetIsValid() << endl;
-	#endif
+					endEffectorPosition->Putxrot(
+										kinectAndHandOrientation.HandOrientation.roll);
+			        endEffectorPosition->Putyrot(
+										kinectAndHandOrientation.HandOrientation.pitch);
+
 					try
 					{
 						Robot->MoveStraight(endEffectorPosition);
 						Robot->Finish(ftLoose);
+
+						if(vibratorMotorsOn){
+							sendBuffer[0] = STOP_VIBRATING_MOTORS_CHAR;
+							curr_buffer_ptr = sendBuffer;
+							totalBytesWritten = 0;
+							currBytesWritten = -1;
+							while(totalBytesWritten < 1)
+							{
+								currBytesWritten = send(arduinoSocket,
+														curr_buffer_ptr,
+														1 - totalBytesWritten,
+														0);
+								if (currBytesWritten == 0)
+								{
+									goto FAILURE;
+								}
+								else if (currBytesWritten < 0)
+								{
+									goto FAILURE;
+								}
+
+								totalBytesWritten += currBytesWritten;
+								curr_buffer_ptr += currBytesWritten;
+							}
+
+
+							vibratorMotorsOn = false;
+						}
 					}
 					catch(...)
 					{
 						printf("Trying to move to an invalid location!\n");
-	#ifdef ADEEL_DEBUG
-						//debugOut << "Trying to move to an invalid location:"
-						//			<< endl
-						//debugOut << endEffectorX<< ", "
-						//		 << endEffectorY << ", "
-						//		 << endEffectorZ << endl;
-						//debugOut.flush();
-	#endif
+
+						if(!vibratorMotorsOn){
+							sendBuffer[0] = START_VIBRATING_MOTORS_CHAR;
+							curr_buffer_ptr = sendBuffer;
+							totalBytesWritten = 0;
+							currBytesWritten = -1;
+							while(totalBytesWritten < 1)
+							{
+								currBytesWritten = send(arduinoSocket,
+														curr_buffer_ptr,
+														1 - totalBytesWritten,
+														0);
+								if (currBytesWritten == 0)
+								{
+									goto FAILURE;
+								}
+								else if (currBytesWritten < 0)
+								{
+									goto FAILURE;
+								}
+
+								totalBytesWritten += currBytesWritten;
+								curr_buffer_ptr += currBytesWritten;
+							}
+
+
+							vibratorMotorsOn = true;
+						}
 					}
-			
-	#ifdef ADEEL_DEBUG
-					//debugOut << timeGetTime() - moveStartTime << endl;
-					//debugOut << "After = "
-					//		 << endEffectorPosition->GetIsValid() << endl;
-					//debugOut.flush();
-	#endif
 				}
 				catch (_com_error MyError)
 				{
@@ -449,23 +440,40 @@ int main() {
 					WSACleanup();
 					Robot->ControlRelease();
 					cin.get();
-		#ifdef ADEEL_DEBUG
-					debugOut.close();
-		#endif
 					return -1;
 				} // catch (_com_error MyError)
 			}
 			else
 			{
 				printf("Ground collision detected!\n");
-	#ifdef ADEEL_DEBUG
-				debugOut << "Ground collision detected:"
-							<< endl
-							<< endEffectorX<< ", "
-							<< endEffectorY << ", "
-							<< endEffectorZ << endl << endl;
-				debugOut.flush();
-	#endif
+
+				if(!vibratorMotorsOn){
+					sendBuffer[0] = START_VIBRATING_MOTORS_CHAR;
+					curr_buffer_ptr = sendBuffer;
+					totalBytesWritten = 0;
+					currBytesWritten = -1;
+					while(totalBytesWritten < 1)
+					{
+						currBytesWritten = send(arduinoSocket,
+												curr_buffer_ptr,
+												1 - totalBytesWritten,
+												0);
+						if (currBytesWritten == 0)
+						{
+							goto FAILURE;
+						}
+						else if (currBytesWritten < 0)
+						{
+							goto FAILURE;
+						}
+
+						totalBytesWritten += currBytesWritten;
+						curr_buffer_ptr += currBytesWritten;
+					}
+
+
+					vibratorMotorsOn = true;
+				}
 			}
 
 			// send Kinect and IMU update request
@@ -485,9 +493,6 @@ int main() {
 					WSACleanup();
 					Robot->ControlRelease();
 					cin.get();
-		#ifdef ADEEL_DEBUG
-					debugOut.close();
-		#endif
 					return 0;
 				}
 				else if (currBytesWritten < 0)
@@ -497,9 +502,6 @@ int main() {
 					WSACleanup();
 					Robot->ControlRelease();
 					cin.get();
-		#ifdef ADEEL_DEBUG
-					debugOut.close();
-		#endif
 					return -1;
 				}
 
@@ -508,7 +510,6 @@ int main() {
 			}	
 		} // if(FD_ISSET(kinectAndIMUSocket,
 		 //			&request_socket_descriptor_set))
-
 		if(FD_ISSET(arduinoSocket,
 					&request_socket_descriptor_set))
 		{
@@ -529,9 +530,6 @@ int main() {
 					WSACleanup();
 					Robot->ControlRelease();
 					cin.get();
-	#ifdef ADEEL_DEBUG
-					debugOut.close();
-	#endif
 					return 0;
 				}
 				else if (curr_bytes_read < 0)
@@ -541,9 +539,6 @@ int main() {
 					WSACleanup();
 					Robot->ControlRelease();
 					cin.get();
-	#ifdef ADEEL_DEBUG
-					debugOut.close();
-	#endif
 					return -1;
 				}
 
@@ -551,8 +546,6 @@ int main() {
 				curr_buffer_ptr += curr_bytes_read;
 			}
 			cout<<currForceValue<<endl;
-			
-			//int startTime = timeGetTime();
 			
 			if( (currForceValue == 0) &&
 				(prevForceValue != 0) )
@@ -580,15 +573,13 @@ int main() {
 				Robot->PutGripperDistance(interpolatedDistance);
 				Robot->GripperFinish();
 			}
-			
-			//cout << "Time Diff = " << timeGetTime() - startTime
-			//	 << endl;
 
 
 			prevForceValue = currForceValue;
 			
 
 			// Send force update request
+			sendBuffer[0] = FORCE_UPDATE_REQUEST_CHAR;
 			curr_buffer_ptr = sendBuffer;
 			totalBytesWritten = 0;
 			currBytesWritten = -1;
@@ -613,11 +604,6 @@ int main() {
 		} // if(FD_ISSET(arduinoSocket,
 		  //             &request_socket_descriptor_set))
 	} // while(true)
-	
-#ifdef ADEEL_DEBUG
-	//int moveStartTime;
-	fstream debugOut("debug.txt", ios::out);
-#endif
 
 
 	retCode = 0;
