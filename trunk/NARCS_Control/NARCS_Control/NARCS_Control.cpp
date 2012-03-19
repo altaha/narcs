@@ -62,7 +62,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	SOCKET kinectAndIMUSocket = INVALID_SOCKET;
 	NARCS* global = NULL;
 
-
+	
 	SharedMem kinectSharedMemory (TEXT("kinectSharedMemory"), false);
 	MutexObj kinectSharedMemoryMutex;
 	SharedMem IMUSharedMemory (TEXT("IMUSharedMemory"), false);
@@ -83,6 +83,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		Sleep(500);
 	}
 
+	
 	while(!IMUSharedMemory.isValid())
 	{
 		if(!IMUSharedMemory.Start(0))
@@ -95,7 +96,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		Sleep(500);
 	}
-
+	
 
 	int retCode = 0;
 	WSADATA wsaData;
@@ -205,6 +206,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		goto FAILURE;
 	}
 
+	socketMode = 1;
+	ioctlsocket(ArduinoHandle->ArduinoSocket, FIONBIO, &socketMode);
+
 
 	global->start_threads();
 #ifdef ADEEL_DEBUG
@@ -220,7 +224,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		 << "Enter any key to exit program." << endl;
 	while(true)
 	{
-		/*
 		// wait for an update request from the remote side
 		while(true)
 		{
@@ -271,7 +274,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			totalBytesWritten += currBytesWritten;
 			currBuffPtr += currBytesWritten;
 		}
-		*/
+
 		// exit program if a key was pressed
 		if(_kbhit() != 0)
 		{

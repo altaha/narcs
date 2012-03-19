@@ -3,6 +3,9 @@
 #include <iostream>
 
 
+#define FORCE_THRESHOLD  10
+
+
 Arduino::Arduino(Thread_type type){
 	setType(type);
 	SOCKET ArduinoSocket = INVALID_SOCKET;
@@ -20,7 +23,7 @@ Arduino::~Arduino(void)
 using namespace std;
 int Arduino::threadMain(void)
 {
-	char *sendBuffer = NULL;
+	char sendBuffer[1];
 	char *recvBuffer = NULL;
 	int errCode;
 	int ForceValue=0;
@@ -73,62 +76,95 @@ int Arduino::threadMain(void)
 	char *currBuffPtr = NULL;
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
+	int prevForceValue = 0;
+	
 	while(true){
-		if(!ReadFile(hSerial, szBuff, 3, &dwBytesRead, NULL)){
-			cout << "Arduino Thread - ReadFile(...) failed." << endl;
-			goto FAILURE;
+		while(true)
+		{
+			recv(ArduinoSocket, sendBuffer, 1, 0);
+
+			retCode = WSAGetLastError();
+			if( retCode == 0 )
+			{
+				break;
+			}
+			else if( retCode != WSAEWOULDBLOCK )
+			{
+				cout << "Arduino Thread - recv(...) failed." << endl;
+				goto FAILURE;
+			}
+
+			if(!ReadFile(hSerial, szBuff, 3, &dwBytesRead, NULL)){
+				cout << "Arduino Thread - ReadFile(...) failed." << endl;
+				goto FAILURE;
+			}
 		}
-		char check=(char)szBuff[0];
+
+		while(true)
+		{
+			if(!ReadFile(hSerial, szBuff, 3, &dwBytesRead, NULL)){
+				cout << "Arduino Thread - ReadFile(...) failed." << endl;
+				goto FAILURE;
+			}
+			char check=(char)szBuff[0];
 		
-		ForceValue = ( int )( ( ( szBuff[2] & 0xff )  << 8 ) | ( szBuff[1] & 0xff ) );
-		if(check !='c')
-		{
-			//cout << "BOO YAKASHA" << endl;
-			if(!ReadFile(hSerial, szBuff, 1, &dwBytesRead, NULL)){
-				//error occurred. Report to user.
-				//cout<<"error\n";
-			}
-			
-		}
-		else
-		{
-			//scale the force reading
-			if(ForceValue>1000)
+			ForceValue = ( int )( ( ( szBuff[2] & 0xff )  << 8 ) | ( szBuff[1] & 0xff ) );
+			if(check !='c')
 			{
-				ForceValue=0;
-			}
-			else if(ForceValue <= 1000 && ForceValue>699)
-			{
-				ForceValue=1000-ForceValue;
-				ForceValue = ( int )( ( ( (double)(ForceValue) / (double)(300) )* (double)(40) )+ (double)(30) );
-			}
-			else if(ForceValue<700)
-			{
-				ForceValue=70;
-			}
-			// now send the force value to the remote site
-			currBuffPtr = (char *)(&ForceValue);
-			totalBytesWritten = 0;
-			currBytesWritten = -1;
-			while(totalBytesWritten < sizeof(ForceValue))
-			{
-				currBytesWritten = send(ArduinoSocket,
-										currBuffPtr,
-										sizeof(ForceValue) - totalBytesWritten,
-										0);
-				if (currBytesWritten == SOCKET_ERROR)
-				{
-					cout << "Arduino Thread - send(...) failed." << endl;
-					goto FAILURE;
+				//cout << "BOO YAKASHA" << endl;
+				if(!ReadFile(hSerial, szBuff, 1, &dwBytesRead, NULL)){
+					//error occurred. Report to user.
+					//cout<<"error\n";
 				}
-
-				totalBytesWritten += currBytesWritten;
-				currBuffPtr += currBytesWritten;
+			
 			}
+			else
+		{		//scale the force reading
+				if(ForceValue>1000)
+				{
+					ForceValue=0;
+				}
+				else if(ForceValue <= 1000 && ForceValue>799)
+				{
+					ForceValue=1000-ForceValue;
+					ForceValue = ( int )( ( ( (double)(ForceValue) / (double)(200) )* (double)(40) )+ (double)(30) );
+				}
+				else if(ForceValue<800)
+				{
+					ForceValue=70;
+				}
+				
+				if( abs(ForceValue - prevForceValue) >= FORCE_THRESHOLD )
+				{
+					// now send the force value to the remote site
+					currBuffPtr = (char *)(&ForceValue);
+					totalBytesWritten = 0;
+					currBytesWritten = -1;
+					while(totalBytesWritten < sizeof(ForceValue))
+					{
+						currBytesWritten = send(ArduinoSocket,
+												currBuffPtr,
+												sizeof(ForceValue) - totalBytesWritten,
+												0);
+						if (currBytesWritten == SOCKET_ERROR)
+						{
+							cout << "Arduino Thread - send(...) failed." << endl;
+							goto FAILURE;
+						}
 
+						totalBytesWritten += currBytesWritten;
+						currBuffPtr += currBytesWritten;
+					}
+
+					prevForceValue = ForceValue;
+					cout << ForceValue << endl;
+					break;
+				}
+			}
 		}
 		
-
+		
+		
 		/*
 		//get motor values from other side
 		recv(ArduinoSocket, recvBuffer, 1, 0);
