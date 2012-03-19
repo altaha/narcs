@@ -32,6 +32,16 @@ using namespace StopWatch;
 #define PROCESSED_Y_ACCEL_NOISE_RANGE_LOW_THRESHOLD   -0.15
 // </adeel>
 
+struct IMU_Raw_Data{
+		double time_s;
+		double x_gyro;
+		double y_gyro;
+		double z_gyro;
+		double x_accel;
+		double y_accel;
+		double z_accel;
+};
+
 namespace CHRInterface {
 
 	/// <summary>
@@ -49,12 +59,17 @@ namespace CHRInterface {
 		DataGraphDialog(void)
 		{
 			// <adeel>
-			this->IMUSharedMemory = gcnew SharedMemWrapper (sizeof(float)*2, L"IMUSharedMemory", true);
+			this->IMUSharedMemory = gcnew SharedMemWrapper (sizeof(IMU_Raw_Data)*2, L"IMUSharedMemory", true);
 			this->IMUSharedMemory->Start(0);
 	
 			this->IMUSharedMemoryMutex = gcnew MutexObjWrapper;
 			this->IMUSharedMemoryMutex->initNamedMutex(L"IMUSharedMemoryMutex", true);
 			// </adeel>
+			// <Ahmed>
+			this->IMUSharedMemoryEvent = gcnew EventObjWrapper;
+			this->IMUSharedMemoryEvent->initNamedEvent(L"IMUSharedMemoryEvent", true, false);
+			writeOneShot = false;
+			// </Ahmed>
 
 			InitializeComponent();
 
@@ -242,6 +257,10 @@ namespace CHRInterface {
 	// <adeel>
 	private: SharedMemWrapper^ IMUSharedMemory;
 	private: MutexObjWrapper^ IMUSharedMemoryMutex;
+	// <Ahmed>
+	private: EventObjWrapper^ IMUSharedMemoryEvent;
+	bool writeOneShot;
+	// </Ahmed>
 	// </adeel>
 	private: ZedGraph::ZedGraphControl^  graphControl;
 	private: System::Windows::Forms::TabControl^  tabControl;
@@ -705,8 +724,11 @@ private: System::Void dataItemTreeView_AfterCheck(System::Object^  sender, Syste
 private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) 
 		 {
 			 this->graphTime->Stop();
+
+			 IMU_Raw_Data imu_data = {};
 			 			 
 			 time = this->graphTime->Elapsed;
+			 imu_data.time_s = time;
 
 			 // Update graph contents based on most recently received data
 			 for( UInt32 i = 0; i < this->dataListCount; i++ )
@@ -759,23 +781,6 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 				 }
 				 */
 
-				 if( i == 0 )
-				 {
-					 if( ( data >= ( double )( PROCESSED_X_ACCEL_NOISE_RANGE_LOW_THRESHOLD ) ) &&
-						 ( data <= ( double )( PROCESSED_X_ACCEL_NOISE_RANGE_HIGH_THRESHOLD ) ) )
-					 {
-						 data = 0;
-					 }
-				 }
-				 else if( i == 1 )
-				 {
-					 if( ( data >= ( double )( PROCESSED_Y_ACCEL_NOISE_RANGE_LOW_THRESHOLD ) ) &&
-						 ( data <= ( double )( PROCESSED_Y_ACCEL_NOISE_RANGE_HIGH_THRESHOLD ) ) )
-					 {
-						 data = 0;
-					 }
-				 }
-
 				 /*
 				 if( i == 0 )
 				 {
@@ -798,17 +803,56 @@ private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e
 
 				 this->dataGraphList[i]->Add(time, data);
 
+				 // <Ahmed>
+				 writeOneShot = false;
+				 switch(i){
+				 case 0:
+					 imu_data.x_gyro = data;
+					 break;
+				 case 1:
+					 imu_data.y_gyro = data;
+					 break;
+				 case 2:
+					 imu_data.z_gyro = data;
+					 break;
+				 case 3:
+					 imu_data.x_accel = data;
+					 break;
+				 case 4:
+					 imu_data.y_accel = data;
+					 break;
+				 case 5:
+					 imu_data.z_accel = data;
+					 writeOneShot = true;
+					 break;
+				 default:
+					 break;
+				 }
+				 // </Ahmed>
+				 
 				 // <adeel>
-				 if( ( dataSendingEnabled ) &&
-					 ( i < 2 ) )
+				 if( ( dataSendingEnabled ) && writeOneShot)
+					 //( i < 2 ) )
 				 {
-					 float floatData = (float)(data);
+					 
+					 if( IMUSharedMemoryMutex->lockMutexWrapper(5) )
+					 {
+						 IMUSharedMemory->writeBytes((const void *)(&imu_data),
+												 sizeof(IMU_Raw_Data),
+												 0);
+					 }
+					 IMUSharedMemoryEvent->setEventWrapper();
+					 IMUSharedMemoryMutex->unlockMutexWrapper();
 
+					/* 
+					float floatData = (float)(data);
 					 IMUSharedMemoryMutex->lockMutexWrapper(INFINITE_WAIT);
 					 IMUSharedMemory->writeBytes((const void *)(&floatData),
 												 sizeof(floatData),
 												 i*sizeof(floatData));
 					 IMUSharedMemoryMutex->unlockMutexWrapper();
+					 */
+
 				 }
 				 // </adeel>
 
