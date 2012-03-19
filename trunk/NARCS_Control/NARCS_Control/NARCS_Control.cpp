@@ -18,6 +18,13 @@
 // <adeel>
 #include "DataTransferStructs.h"
 #include <iostream>
+// <Ahmed>
+#include "MovingAverage.h"
+#include <math.h>
+#include <fstream>
+
+#define PI 3.14159265
+// </Ahmed>
 
 
 #define REMOTE_SIDE_COMPUTER_IP_ADDRESS_BYTE_1  192
@@ -32,11 +39,8 @@
 
 
 //#define ADEEL_DEBUG
+//#define AHMED_DEBUG
 
-
-#ifdef ADEEL_DEBUG
-#include <fstream>
-#endif
 
 
 //#define BUFF_SIZE 1024
@@ -59,17 +63,28 @@ using namespace std;
 */
 int _tmain(int argc, _TCHAR* argv[])
 {
+	#ifdef AHMED_DEBUG
+	fstream AhmedDebugRaw("IMURaw.csv", ios::out);
+	AhmedDebugRaw << "time_s, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z"<<endl;
+	fstream AhmedDebugAvg("IMUAvg.csv", ios::out);
+	AhmedDebugAvg << "time_s, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z, roll_g, pitch_g, yaw_g"<<endl;
+	#endif
+
+
+
 	SOCKET kinectAndIMUSocket = INVALID_SOCKET;
 	NARCS* global = NULL;
 
 	
 	SharedMem kinectSharedMemory (TEXT("kinectSharedMemory"), false);
 	MutexObj kinectSharedMemoryMutex;
-	SharedMem IMUSharedMemory (TEXT("IMUSharedMemory"), false);
-	MutexObj IMUSharedMemoryMutex;
-	KinectAndIMUData kinectAndIMUData;
+	KinectAndHandOrientation kinectAndHandOrientation;
+	kinectAndHandOrientation.HandOrientation.pitch = 0;
+	kinectAndHandOrientation.HandOrientation.roll = 0;
+	kinectAndHandOrientation.HandOrientation.yaw = 0;
 
 
+	
 	while(!kinectSharedMemory.isValid())
 	{
 		if(!kinectSharedMemory.Start(0))
@@ -82,22 +97,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		Sleep(500);
 	}
-
 	
-	while(!IMUSharedMemory.isValid())
-	{
-		if(!IMUSharedMemory.Start(0))
-		{
-			Sleep(500);
-		}
-	}
-		
-	while(!IMUSharedMemoryMutex.isValid() && !IMUSharedMemoryMutex.initNamedMutex(TEXT("IMUSharedMemoryMutex"), false))
-	{
-		Sleep(500);
-	}
 	
-
 	int retCode = 0;
 	WSADATA wsaData;
 	
@@ -152,6 +153,15 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("Starting threads\n");
 		global = new NARCS();
 		global->allocate_threads();
+
+		//allocate global commBlocks
+		unsigned char shareBuffer[1024*NUM_THREADS];
+		for(int i=0; i<NUM_THREADS; i++){
+			globCommBlocks[i]._mutex.initMutex();
+			globCommBlocks[i]._event.initEvent(false);
+			globCommBlocks[i]._size = 1024;
+			globCommBlocks[i]._pBuf = shareBuffer+i*1024;
+		}
 	}
 	catch (int e)
 	{
@@ -187,6 +197,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("Exception: unknown  type\n");
 	}
 
+
 	// Creating Arduino Socket
 	Arduino* ArduinoHandle = (Arduino*)(global->getHandle(ARDUINO_THREAD));
 	
@@ -209,11 +220,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	socketMode = 1;
 	ioctlsocket(ArduinoHandle->ArduinoSocket, FIONBIO, &socketMode);
 
-
 	global->start_threads();
+
 #ifdef ADEEL_DEBUG
 	fstream debugOut("IMUDebug.txt", ios::out);
 #endif
+
 
 	char recvBuffer[1];
 	char *currBuffPtr = NULL;
@@ -222,11 +234,14 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	cout << "Program Running." << endl
 		 << "Enter any key to exit program." << endl;
+
+	int counter = 0;
 	while(true)
 	{
 		// wait for an update request from the remote side
 		while(true)
 		{
+			
 			recv(kinectAndIMUSocket, recvBuffer, 1, 0);
 
 			retCode = WSAGetLastError();
@@ -242,28 +257,38 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 
 		// get latest Kinect data
+		
 		lockMutex(kinectSharedMemoryMutex, INFINITE);
-		kinectSharedMemory.readBytes((void *)(&kinectAndIMUData.kinectData),
-									 sizeof(kinectAndIMUData.kinectData),
+		kinectSharedMemory.readBytes((void *)(&kinectAndHandOrientation.kinectData),
+									 sizeof(kinectAndHandOrientation.kinectData),
 									 0);
 		unlockMutex(kinectSharedMemoryMutex);
 		
-		// get latest IMU data
-		lockMutex(IMUSharedMemoryMutex, INFINITE);
-		IMUSharedMemory.readBytes((void *)(&kinectAndIMUData.imuData),
-								  sizeof(kinectAndIMUData.imuData),
-								  0);
-		unlockMutex(IMUSharedMemoryMutex);
+
+		//Get the latest IMU data from the other thread
+		//HandOrientation orienation_test;
+		//wait for new data
+		if( waitEvent(globCommBlocks[KINECT_AND_IMU_THREAD]._event, 0) )
+		{
+			//get Mutex before reading
+			if ( lockMutex(globCommBlocks[KINECT_AND_IMU_THREAD]._mutex, 2) )
+			{
+				globCommBlocks[KINECT_AND_IMU_THREAD].readSingle(kinectAndHandOrientation.HandOrientation, 0);
+				//release Mutex after reading
+				unlockMutex(globCommBlocks[KINECT_AND_IMU_THREAD]._mutex);
+			}
+		}
+
 		
 		// send the kinect and IMU update
-		currBuffPtr = (char *)(&kinectAndIMUData);
+		currBuffPtr = (char *)(&kinectAndHandOrientation);
 		totalBytesWritten = 0;
 		currBytesWritten = -1;
-		while(totalBytesWritten < sizeof(kinectAndIMUData))
+		while(totalBytesWritten < sizeof(kinectAndHandOrientation))
 		{
 			currBytesWritten = send(kinectAndIMUSocket,
 									currBuffPtr,
-									sizeof(kinectAndIMUData) - totalBytesWritten,
+									sizeof(kinectAndHandOrientation) - totalBytesWritten,
 									0);
 			if (currBytesWritten == SOCKET_ERROR)
 			{
@@ -289,16 +314,16 @@ int _tmain(int argc, _TCHAR* argv[])
 	for(int i = 0; i < 500; i++)
 	{
 		if ( lockMutex(kinectSharedMemoryMutex, INFINITE) ){
-			kinectSharedMemory.readBytes((void *)(&kinectAndIMUData.kinectData), sizeof(kinectAndIMUData.kinectData), 0);
+			kinectSharedMemory.readBytes((void *)(&kinectAndHandOrientation.kinectData), sizeof(kinectAndHandOrientation.kinectData), 0);
 			unlockMutex(kinectSharedMemoryMutex);
-			cout << "x = " << kinectAndIMUData.kinectData.rightHandX
-			     << ", y = " << kinectAndIMUData.kinectData.rightHandY
-				 << ", z = " << kinectAndIMUData.kinectData.rightHandZ << endl;
+			cout << "x = " << kinectAndHandOrientation.kinectData.rightHandX
+			     << ", y = " << kinectAndHandOrientation.kinectData.rightHandY
+				 << ", z = " << kinectAndHandOrientation.kinectData.rightHandZ << endl;
 
 			/*
-			debugOut << "x = " << kinectAndIMUData.kinectData.rightHandX
-					 << ", y = " << kinectAndIMUData.kinectData.rightHandY
-					 << ", z = " << kinectAndIMUData.kinectData.rightHandZ << endl;
+			debugOut << "x = " << kinectAndHandOrientation.kinectData.rightHandX
+					 << ", y = " << kinectAndHandOrientation.kinectData.rightHandY
+					 << ", z = " << kinectAndHandOrientation.kinectData.rightHandZ << endl;
 			debugOut.flush();
 			*/
 		}
@@ -306,6 +331,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	debugOut.close();
+#endif
+
+
+#ifdef AHMED_DEBUG
+	AhmedDebugRaw.close();
+	AhmedDebugAvg.close();
 #endif
 
 

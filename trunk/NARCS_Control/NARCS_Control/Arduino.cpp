@@ -119,7 +119,7 @@ int Arduino::threadMain(void)
 			
 			}
 			else
-		{		//scale the force reading
+			{	//scale the force reading
 				if(ForceValue>1000)
 				{
 					ForceValue=0;

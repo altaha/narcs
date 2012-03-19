@@ -25,9 +25,9 @@ MovingAverage::~MovingAverage(void)
 	{
 		delete[] averageArray[i];
 	}
-	delete[] averageArray;
-	delete[] nextItemIndex;
-	delete[] movingAverage;
+	//delete[] averageArray;
+	//delete[] nextItemIndex;
+	//delete[] movingAverage;
 }
 
 double MovingAverage::addNextItem(double nextItem, unsigned int signal)

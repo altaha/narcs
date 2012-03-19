@@ -80,6 +80,7 @@
     <ClInclude Include="DataTransferStructs.h" />
     <ClInclude Include="defines.h" />
     <ClInclude Include="IMU.h" />
+    <ClInclude Include="MovingAverage.h" />
     <ClInclude Include="NARCS.h" />
     <ClInclude Include="SharedMem.h" />
     <ClInclude Include="stdafx.h" />
@@ -90,6 +91,7 @@
   <ItemGroup>
     <ClCompile Include="Arduino.cpp" />
     <ClCompile Include="IMU.cpp" />
+    <ClCompile Include="MovingAverage.cpp" />
     <ClCompile Include="NARCS.cpp" />
     <ClCompile Include="NARCS_Control.cpp" />
     <ClCompile Include="SharedMem.cpp" />

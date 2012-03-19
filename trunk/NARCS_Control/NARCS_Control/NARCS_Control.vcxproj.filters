@@ -28,9 +28,6 @@
     <ClInclude Include="ThreadObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="defines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="IMU.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -40,13 +37,19 @@
     <ClInclude Include="SynchObjs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataTransferStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Arduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NARCS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="defines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataTransferStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MovingAverage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -73,6 +76,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NARCS_Control.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MovingAverage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
