@@ -22,6 +22,8 @@
 //#define NEG_ANGLE_GROUND_DETECTION_OFFSET_MM  28
 #define Z_MIN_MM  50
 #define PI  3.14159265
+
+
 //#define ADEEL_DEBUG
 
 #ifdef ADEEL_DEBUG
@@ -50,6 +52,8 @@ int main() {
 		Robot->PutBlendMotion(-1);
 		Robot->Ready();
 		Robot->Finish(ftTight);
+		Robot->GripperOpen(30);
+		Robot->GripperFinish();
 	}
 	catch (_com_error MyError)
 	{
@@ -180,6 +184,10 @@ int main() {
 		  endEffectorZMin = 0;
 	unsigned int totalBytesWritten = 0;
 	int currBytesWritten = -1;
+	int currForceValue = 0,
+		prevForceValue = 0;
+	const float gripperForceDistanceMapping[5] = 
+										{1.58, 1.32, 1.08, 0.87, 0.73};
 
 
 	// Send first Kinect and IMU update request
@@ -221,7 +229,30 @@ int main() {
 		curr_buffer_ptr += currBytesWritten;
 	}
 
+	// Send first force update request
+	curr_buffer_ptr = sendBuffer;
+	totalBytesWritten = 0;
+	currBytesWritten = -1;
+	while(totalBytesWritten < 1)
+	{
+		currBytesWritten = send(arduinoSocket,
+								curr_buffer_ptr,
+								1 - totalBytesWritten,
+								0);
+		if (currBytesWritten == 0)
+		{
+			goto FAILURE;
+		}
+		else if (currBytesWritten < 0)
+		{
+			goto FAILURE;
+		}
 
+		totalBytesWritten += currBytesWritten;
+		curr_buffer_ptr += currBytesWritten;
+	}
+
+	
 
 	while(true)
 	{
@@ -475,21 +506,110 @@ int main() {
 				totalBytesWritten += currBytesWritten;
 				curr_buffer_ptr += currBytesWritten;
 			}	
-		}
+		} // if(FD_ISSET(kinectAndIMUSocket,
+		 //			&request_socket_descriptor_set))
+
 		if(FD_ISSET(arduinoSocket,
 					&request_socket_descriptor_set))
 		{
-			printf("Got data from arduinoSocket.\n");
-			char recvBuff[1];
-			int curr_bytes_read = recv(arduinoSocket,
-									   recvBuff,
-									   1,
-									   0);
-			if (curr_bytes_read != 1)
+			// Receive Arduino Force Value
+			curr_bytes_read = -1;
+			total_bytes_read = 0;
+			curr_buffer_ptr = (char *)(&currForceValue);
+			while(total_bytes_read < sizeof(currForceValue))
 			{
-				goto FAILURE;
+				curr_bytes_read = recv(arduinoSocket,
+										curr_buffer_ptr,
+										sizeof(currForceValue) - total_bytes_read,
+										0);
+				if (curr_bytes_read == 0)
+				{
+					printf("Connection closing...\n");
+					closesocket(arduinoSocket);
+					WSACleanup();
+					Robot->ControlRelease();
+					cin.get();
+	#ifdef ADEEL_DEBUG
+					debugOut.close();
+	#endif
+					return 0;
+				}
+				else if (curr_bytes_read < 0)
+				{
+					printf("recv failed: %d\n", WSAGetLastError());
+					closesocket(arduinoSocket);
+					WSACleanup();
+					Robot->ControlRelease();
+					cin.get();
+	#ifdef ADEEL_DEBUG
+					debugOut.close();
+	#endif
+					return -1;
+				}
+
+				total_bytes_read += curr_bytes_read;
+				curr_buffer_ptr += curr_bytes_read;
 			}
-			cout << recvBuff[0] << endl;
+			cout<<currForceValue<<endl;
+			
+			//int startTime = timeGetTime();
+			
+			if( (currForceValue == 0) &&
+				(prevForceValue != 0) )
+			{
+				Robot->GripperOpen(30);
+				Robot->GripperFinish();
+			}
+			else if(currForceValue > prevForceValue)
+			{
+				Robot->GripperClose((float)(currForceValue));
+				Robot->GripperFinish();
+			}
+			else if(currForceValue < prevForceValue)
+			{
+				int index = currForceValue/10;
+				index -= 3;
+
+				float lowerLimit = gripperForceDistanceMapping[index],
+					  upperLimit = gripperForceDistanceMapping[index + 1];
+
+				float interpolatedDistance = lowerLimit +
+											 (upperLimit - lowerLimit)/((float)(10))*
+											 ((float)(currForceValue - (index + 3)*10));
+				
+				Robot->PutGripperDistance(interpolatedDistance);
+				Robot->GripperFinish();
+			}
+			
+			//cout << "Time Diff = " << timeGetTime() - startTime
+			//	 << endl;
+
+
+			prevForceValue = currForceValue;
+			
+
+			// Send force update request
+			curr_buffer_ptr = sendBuffer;
+			totalBytesWritten = 0;
+			currBytesWritten = -1;
+			while(totalBytesWritten < 1)
+			{
+				currBytesWritten = send(arduinoSocket,
+										curr_buffer_ptr,
+										1 - totalBytesWritten,
+										0);
+				if (currBytesWritten == 0)
+				{
+					goto FAILURE;
+				}
+				else if (currBytesWritten < 0)
+				{
+					goto FAILURE;
+				}
+
+				totalBytesWritten += currBytesWritten;
+				curr_buffer_ptr += currBytesWritten;
+			}
 		} // if(FD_ISSET(arduinoSocket,
 		  //             &request_socket_descriptor_set))
 	} // while(true)
